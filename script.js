@@ -69,7 +69,7 @@ async function fetchDevices() {
                 <td>${status}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-action btn-edit" onclick="window.location.href='inspector.html?serial=' + '${serial}'">VIEW XPATH</button>
+                        <button class="btn-action btn-edit" onclick="window.location.href='inspector?serial=' + '${serial}'">VIEW XPATH</button>
                     </div>
                 </td>
             `;
