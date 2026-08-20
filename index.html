@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MinouiDev Dashboard</title>
+    <link rel="stylesheet" href="style.css?v=7">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard -->
+            <div class="dashboard-wrapper">
+                
+                <header class="dashboard-header">
+                    <div class="logo-area">
+                        <img src="logo.jpg" alt="MinouiDev Logo" style="height: 32px; width: 32px; border-radius: 6px; object-fit: cover; margin-right: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.5);">
+                        <h2>MinouiDev Dashboard</h2>
+                    </div>
+                    <div class="header-right">
+                        <a href="https://github.com/codeskyblue/minouidev" target="_blank" class="github-link"><i class="fa-brands fa-github"></i></a>
+                    </div>
+                </header>
+                <!-- Stat Cards -->
+                <div class="stat-cards">
+                    <div class="card stat-card">
+                        <i class="fa-brands fa-android stat-icon"></i>
+                        <h3>CONNECTED DEVICES</h3>
+                        <p id="total-devices">0</p>
+                    </div>
+                    <div class="card stat-card">
+                        <i class="fa-solid fa-network-wired stat-icon" style="color: #00bf9a;"></i>
+                        <h3>SERVER STATUS</h3>
+                        <p id="server-status" style="color: #00bf9a;">ONLINE</p>
+                    </div>
+                    <div class="card stat-card">
+                        <i class="fa-solid fa-code stat-icon" style="color: #1d8cf8;"></i>
+                        <h3>SERVER VERSION</h3>
+                        <p id="server-version">0.0.0</p>
+                    </div>
+                    <div class="card stat-card">
+                        <i class="fa-solid fa-mobile-screen stat-icon" style="color: #fd5d93;"></i>
+                        <h3>ACTIVE EXTRACTS</h3>
+                        <p id="active-extracts">0</p>
+                    </div>
+                </div>
+
+                <!-- Manager Phone Table -->
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Manager Phone</h2>
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="Search">
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th width="40"><input type="checkbox"></th>
+                                    <th width="60">No</th>
+                                    <th>DeviceID</th>
+                                    <th>Name</th>
+                                    <th>Model</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devices-list">
+                                <tr>
+                                    <td colspan="7" class="loading-text">Đang tải danh sách thiết bị...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-footer">
+                        <div class="pagination-info">
+                            <span>Rows per page: </span>
+                            <select>
+                                <option>20</option>
+                                <option>50</option>
+                            </select>
+                            <span id="page-info">1-0 of 0</span>
+                        </div>
+                        <div class="pagination-controls">
+                            <button><i class="fa-solid fa-angles-left"></i></button>
+                            <button><i class="fa-solid fa-angle-left"></i></button>
+                            <button><i class="fa-solid fa-angle-right"></i></button>
+                            <button><i class="fa-solid fa-angles-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for XPath / Screenshot -->
+    <div id="action-modal" class="modal">
+        <div class="modal-content card">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-title">Device Action</h3>
+            <div id="modal-body" style="margin-top: 15px; max-height: 70vh; overflow: auto;">
+                <!-- Content goes here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=7"></script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MinouiDev XPath Inspector</title>
+    <link rel="icon" href="logo.jpg">
+    <link rel="stylesheet" href="inspector.css?v=50">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="inspector-header">
+        <div class="header-left">
+            <img src="logo.jpg" alt="Logo" style="height: 32px; width: 32px; border-radius: 6px; object-fit: cover; margin-right: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.5);">
+            <a href="index.html" class="btn btn-back"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <span class="device-label"><i class="fa-brands fa-android"></i> <span id="device-serial">Loading...</span></span>
+        </div>
+        <div class="header-right">
+            <button id="btn-upload" class="btn btn-action" style="background: var(--hover-bg); border-color: var(--border-color); color: var(--text-main); margin-right: 8px;"><i class="fa-solid fa-file-arrow-up"></i> Upload Dump</button>
+            <button id="btn-refresh" class="btn btn-action"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+        </div>
+    </header>
+
+    <main class="inspector-main" id="main-container">
+        <!-- Left Panel: Device Canvas -->
+        <section class="panel-left" id="panel-left" style="flex: 0 1 auto; min-width: 300px;">
+            <div class="device-container">
+                <!-- Device Header (Power Button) -->
+                <div class="device-header">
+                    <span class="device-status-text" id="device-status-text">Screen On</span>
+                    <div>
+                        <button class="header-btn" id="btn-toggle-bounds" title="Toggle Bounds" style="margin-right: 10px;"><i class="fa-solid fa-vector-square"></i></button>
+                        <button class="header-btn" id="btn-power" title="Power"><i class="fa-solid fa-power-off"></i></button>
+                    </div>
+                </div>
+                
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div class="loader-pulse"></div><div class="loading-text">Fetching UI Hierarchy...</div>
+                    </div>
+                    <img id="device-screen" src="" alt="Device Screen">
+                    <div id="canvas-overlay"></div>
+                </div>
+                <div class="device-nav-bar">
+                    <button class="nav-btn" id="btn-nav-task" title="Recent Tasks"><i class="fa-solid fa-bars"></i></button>
+                    <button class="nav-btn" id="btn-nav-home" title="Home"><i class="fa-solid fa-house"></i></button>
+                    <button class="nav-btn" id="btn-nav-back" title="Back"><i class="fa-solid fa-reply" style="transform: scaleX(-1);"></i></button>
+                </div>
+                <div class="device-footer" style="background-color: #1a1a27; height: 25px; display: flex; align-items: center; justify-content: center; position: relative; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8b8ea8; border-top: 1px solid #3d3f54;">
+                    X: <span id="hover-x" style="display: inline-block; width: 40px; text-align: left; margin-left: 5px;">-</span>
+                    Y: <span id="hover-y" style="display: inline-block; width: 40px; text-align: left; margin-left: 5px;">-</span>
+                    <button id="btn-clear-pings" style="position: absolute; right: 10px; background: transparent; border: none; color: #bf616a; cursor: pointer; font-size: 12px;" title="Clear All Pings (Esc)"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <div class="resizer" id="resizer-main"></div>
+
+        <!-- Right Panel: Data & Hierarchy -->
+        <section class="panel-right" style="flex: 1; min-width: 400px; display: flex; flex-direction: column;">
+            
+            <div class="panel-tabs">
+                <button class="tab-btn active" data-tab="tab-hierarchy">Hierarchy</button>
+                <button class="tab-btn" data-tab="tab-demo">Demo (HAtxLib)</button>
+                <button class="tab-btn" data-tab="tab-guide">Hướng dẫn</button>
+            </div>
+            
+            <div class="tab-content active split-content" id="tab-hierarchy">
+                <!-- Middle: Properties & XPath -->
+                <div class="pane-properties" id="pane-properties" style="width: 50%; flex: none; min-width: 250px;">
+                    <div class="xpath-generator" id="xpath-container">
+                        <div class="xpath-controls">
+                            <label>XPath by </label>
+                            <div class="custom-select-wrapper">
+                                <div class="custom-select-trigger" id="xpath-strategy-trigger">
+                                    <span id="xpath-strategy-label">auto</span>
+                                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i>
+                                </div>
+                                <div class="custom-select-dropdown" id="xpath-strategy-dropdown" style="display: none;">
+                                    <!-- items injected via JS -->
+                                </div>
+                            </div>
+                            <button id="btn-copy-xpath" class="btn-copy"><i class="fa-regular fa-copy"></i></button>
+                        </div>
+                        <div class="xpath-input-box">
+                            <input type="text" id="xpath-value" readonly placeholder="Select a node to generate XPath">
+                        </div>
+                    </div>
+
+                    <div class="property-container">
+                        <div id="no-node-selected" class="empty-state">
+                            Select a node in the hierarchy or canvas.
+                        </div>
+                        <table class="property-table" id="property-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="property-tbody">
+                                <!-- Properties will go here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="resizer" id="resizer-data"></div>
+
+                <!-- Rightmost: Tree Hierarchy -->
+                <div class="pane-tree" id="pane-tree" style="flex: 1; min-width: 250px;">
+                    <div class="tree-controls">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-node" placeholder="Search hierarchy or XPath...">
+                            <span id="xpath-search-info"></span>
+                            <div class="search-btn-group" style="display: none;">
+                                <button id="btn-xpath-prev" class="btn-nav" disabled title="Previous Match"><i class="fa-solid fa-chevron-up"></i></button>
+                                <button id="btn-xpath-next" class="btn-nav" disabled title="Next Match"><i class="fa-solid fa-chevron-down"></i></button>
+                                <button id="btn-xpath-tap" class="btn-nav" disabled title="Test Click/Tap"><i class="fa-solid fa-hand-pointer"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tree-container">
+                        <ul id="hierarchy-tree" class="tree">
+                            <!-- Tree nodes will be rendered here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="tab-demo" style="display: none; flex: 1; padding: 30px; overflow-y: auto; color: var(--text-main); font-size: 15px;">
+                <h2 style="margin-top: 0; color: var(--text-main); font-weight: 500; font-size: 22px; margin-bottom: 10px;"><i class="fa-solid fa-laptop-code" style="color: var(--accent-green); margin-right: 12px;"></i> HAtxLib C# Usage Guide</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">Use the generated XPaths from this inspector directly in your C# code using <strong>HAtxLib</strong>.</p>
+                <div style="background: #1a1a27; padding: 20px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #a3be8c; overflow-x: auto; white-space: pre-wrap; line-height: 1.6; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);">
+<span style="color: #c678dd;">using</span> HAtxLib;
+<span style="color: #c678dd;">using</span> HAtxLib.UIAutomator;
+
+<span style="color: #5c6370;">// 1. Kết nối với thiết bị (Connect)</span>
+<span style="color: #e5c07b;">HAtx</span> atx = <span style="color: #c678dd;">new</span> <span style="color: #e5c07b;">HAtx</span>(<span style="color: #98c379;">"SERIAL_DEVICE"</span>, <span style="color: #d19a66;">true</span>);
+
+<span style="color: #5c6370;">// 2. Tìm phần tử bằng XPath và Click</span>
+atx.Node(By.Xpath(<span style="color: #98c379;">"//*[@text='Bộ sưu tập']"</span>)).Click();
+
+<span style="color: #5c6370;">// 3. Kiểm tra phần tử có tồn tại hay không (Exists)</span>
+<span style="color: #c678dd;">bool</span> isExist = atx.Node(By.Xpath(<span style="color: #98c379;">"//*[@text='Bộ sưu tập']"</span>)).Exists();
+
+<span style="color: #5c6370;">// 4. Lấy Text và các thuộc tính (Attributes) của phần tử</span>
+<span style="color: #e5c07b;">NodeObj</span> info = atx.Node(By.Xpath(<span style="color: #98c379;">"//*[@resource-id='com.example:id/title']"</span>)).Info;
+<span style="color: #c678dd;">string</span> text = info.Text;
+<span style="color: #c678dd;">string</span> className = info.ClassName;
+<span style="color: #c678dd;">string</span> contentDesc = info.ContentDescription;
+<span style="color: #c678dd;">string</span> resourceId = info.ResourceName;
+<span style="color: #c678dd;">bool</span> isClickable = info.Clickable;
+<span style="color: #c678dd;">var</span> bounds = info.Bound; <span style="color: #5c6370;">// Lấy tọa độ (bounds) của phần tử</span>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="tab-guide" style="display: none; flex: 1; padding: 30px; overflow-y: auto; color: var(--text-main); font-size: 15px;">
+                <h2 style="margin-top: 0; color: var(--text-main); font-weight: 500; font-size: 22px; margin-bottom: 20px;"><i class="fa-solid fa-book-open" style="color: var(--accent-green); margin-right: 12px;"></i> Hướng dẫn sử dụng (MinouiDev)</h2>
+                
+                <div style="background: #1a1a27; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-bottom: 20px;">
+                    <h3 style="color: #61afef; margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Công cụ Ping tọa độ</h3>
+                    <ul style="line-height: 1.8; color: #a3be8c; padding-left: 20px; margin-bottom: 0;">
+                        <li><strong>Thêm Ping:</strong> Giữ <kbd style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">Ctrl</kbd> + <kbd style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">P</kbd> và <strong>Click chuột trái</strong> vào vị trí bất kỳ trên điện thoại.</li>
+                        <li><strong>Xóa một Ping:</strong> <strong>Click đúp chuột</strong> vào biểu tượng Ping muốn xóa.</li>
+                        <li><strong>Xóa toàn bộ Ping:</strong> Nhấn phím <kbd style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">Esc</kbd> hoặc click vào nút <strong>Thùng rác <i class="fa-solid fa-trash-can" style="color: #bf616a;"></i></strong> ở thanh Footer.</li>
+                    </ul>
+                </div>
+
+                <div style="background: #1a1a27; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);">
+                    <h3 style="color: #61afef; margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-sitemap" style="margin-right: 8px;"></i> Thao tác nâng cao</h3>
+                    <ul style="line-height: 1.8; color: #a3be8c; padding-left: 20px; margin-bottom: 0;">
+                        <li><strong>Click chuẩn xác:</strong> Di chuột qua cây thư mục (Hierarchy) bên phải, hệ thống sẽ tự động vẽ viền đỏ chỉ vị trí UI trên thiết bị.</li>
+                        <li><strong>Menu chức năng:</strong> <strong>Bấm chuột phải</strong> vào một khung UI bất kỳ trên điện thoại để hiện Menu <strong>Copy XPath</strong> hoặc <strong>Tap Element</strong>.</li>
+                        <li><strong>Làm mới (Refresh):</strong> Nhấn phím <kbd style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">F5</kbd> để tải lại giao diện thiết bị.</li>
+                    </ul>
+                </div>
+                <div style="background: #1a1a27; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-top: 20px;">
+                    <h3 style="color: #61afef; margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-headset" style="margin-right: 8px;"></i> Liên hệ Hỗ trợ</h3>
+                    <p style="color: #a3be8c; line-height: 1.6; margin-bottom: 15px;">Nếu bạn cần tư vấn về sản phẩm, báo lỗi hoặc có bất kỳ câu hỏi nào, vui lòng liên hệ trực tiếp với chúng tôi qua Messenger.</p>
+                    <a href="https://www.facebook.com/messages/t/9510917015691263/?text=Xin%20ch%C3%A0o%20m%C3%ACnh%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20v%E1%BB%81%20s%E1%BA%A3n%20ph%E1%BA%A9m%20c%E1%BB%A7a%20b%E1%BA%A1n%2Cb%E1%BA%A1n%20h%E1%BB%97%20tr%E1%BB%A3%20m%C3%ACnh%20nh%C3%A9" target="_blank" style="display: inline-block; background-color: #0084ff; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;"><i class="fa-brands fa-facebook-messenger" style="margin-right: 8px;"></i>Nhắn tin cho MinouiDev</a>
+                </div>
+            </div>
+            
+        </section>
+    </main>
+    
+    <footer class="inspector-footer">
+        <div class="footer-left">
+            <i class="fa-solid fa-circle" style="color: var(--accent-green); font-size: 8px; margin-right: 5px;"></i>
+            <span id="footer-status">Ready</span>
+        </div>
+        <div class="footer-right">
+            <a href="https://www.facebook.com/messages/t/9510917015691263/?text=Xin%20ch%C3%A0o%20m%C3%ACnh%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20v%E1%BB%81%20s%E1%BA%A3n%20ph%E1%BA%A9m%20c%E1%BB%A7a%20b%E1%BA%A1n%2Cb%E1%BA%A1n%20h%E1%BB%97%20tr%E1%BB%A3%20m%C3%ACnh%20nh%C3%A9" target="_blank" style="color: inherit; text-decoration: none; margin-right: 15px; transition: color 0.2s;" onmouseover="this.style.color='#0084ff'" onmouseout="this.style.color='inherit'"><i class="fa-brands fa-facebook-messenger" style="color: #0084ff;"></i> Liên hệ</a>
+            <a href="https://github.com/minhn/minouidev" target="_blank" style="color: inherit; text-decoration: none;"><i class="fa-brands fa-github"></i> MinouiDev</a>
+        </div>
+    </footer>
+    
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu" style="display: none;">
+        <div class="menu-item" id="menu-copy-xpath"><i class="fa-solid fa-copy"></i> Copy Full XPath</div>
+        <div class="menu-item" id="menu-copy-short-xpath"><i class="fa-solid fa-compress"></i> Copy Short XPath</div>
+        <div class="menu-item" id="menu-tap"><i class="fa-solid fa-hand-pointer"></i> Tap Element</div>
+    </div>
+
+    <!-- Toast Message -->
+    <div id="toast-message" class="toast-message"></div>
+
+    <!-- Upload Dump Modal -->
+    <div id="upload-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: var(--bg-panel); width: 450px; max-width: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: var(--text-main);"><i class="fa-solid fa-file-arrow-up" style="color: var(--accent-green); margin-right: 8px;"></i> Offline Inspect</h3>
+                <button id="btn-close-upload" style="background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div style="padding: 20px; color: var(--text-main); font-size: 14px;">
+                <p style="margin-top: 0; color: var(--text-muted); margin-bottom: 20px;">Upload a screenshot and a UIAutomator XML (or JSON) file to inspect UI offline.</p>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Screenshot Image (.png, .jpg)</label>
+                    <input type="file" id="file-image" accept="image/png, image/jpeg" style="width: 100%; padding: 8px; background: #1a1a27; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main);">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Hierarchy Dump (.xml, .json, .txt)</label>
+                    <input type="file" id="file-hierarchy" accept=".xml, .json, .txt" style="width: 100%; padding: 8px; background: #1a1a27; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main);">
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button id="btn-cancel-upload" class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main);">Cancel</button>
+                    <button id="btn-submit-upload" class="btn" style="background: var(--accent-green); border: none; color: #fff;"><i class="fa-solid fa-check"></i> Load Files</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="inspector.js?v=46"></script>
+</body>
+</html>
