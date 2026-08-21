@@ -203,6 +203,8 @@ body {
 .canvas-wrapper {
     position: relative;
     background-color: transparent;
+    min-width: 320px;
+    min-height: 600px;
 }
 
 #device-screen {
@@ -848,3 +850,98 @@ body {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+    .inspector-main {
+        flex-direction: column !important;
+    }
+    
+    .panel-left, .panel-right {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+    
+    .panel-left {
+        height: 50vh;
+        flex: none;
+    }
+    
+    .panel-right {
+        height: auto;
+        flex: 1;
+    }
+    
+    #resizer-main, #resizer-data {
+        display: none !important;
+    }
+    
+    .tab-content.split-content {
+        flex-direction: column !important;
+    }
+    
+    .pane-properties, .pane-tree {
+        width: 100% !important;
+        min-width: 100% !important;
+        flex: none;
+    }
+    
+    .pane-properties {
+        height: auto;
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+    
+    .pane-tree {
+        height: 50vh;
+    }
+    
+    .panel-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+    
+    .panel-tabs::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Edge */
+    }
+    
+    .tab-btn {
+        flex-shrink: 0;
+        padding: 10px 15px;
+    }
+}
+
+/* GTranslate Styling for Dark Theme */
+.gtranslate_wrapper {
+    display: inline-block;
+}
+.gtranslate_wrapper select.gt_selector {
+    background-color: var(--bg-card, #161b22) !important;
+    color: var(--text-main, #c9d1d9) !important;
+    border: 1px solid var(--border-color, #30363d) !important;
+    border-radius: 6px !important;
+    padding: 6px 30px 6px 10px !important;
+    font-family: inherit !important;
+    font-size: 13px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b949e'%3E%3Cpath d='M4 6l4 4 4-4z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    cursor: pointer !important;
+    height: 32px !important;
+    outline: none !important;
+    min-width: 120px;
+}
+.gtranslate_wrapper select.gt_selector:hover {
+    border-color: #8b949e !important;
+}
+.gtranslate_wrapper select.gt_selector:focus {
+    border-color: var(--accent-green) !important;
+    box-shadow: 0 0 0 2px rgba(0, 210, 132, 0.2) !important;
+}
+

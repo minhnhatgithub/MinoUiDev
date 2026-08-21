@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentSerial = urlParams.get('serial');
 
     if (!currentSerial) {
-        showToast('No device serial provided!');
+        showToast('Không có số serial của thiết bị!');
         return;
     }
 
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contextMenu.style.left = left + 'px';
             contextMenu.style.top = top + 'px';
         } catch (err) {
-            showToast("Error in context menu: " + err.message);
+            showToast("Lỗi menu ngữ cảnh: " + err.message);
         }
     };
 
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('menu-copy-xpath').addEventListener('click', () => {
         if (contextNode && contextNode._xpath) {
-            copyToClipboard(contextNode._xpath, 'Copied Full XPath!');
+            copyToClipboard(contextNode._xpath, 'Đã copy XPath đầy đủ!');
         }
     });
 
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (contextNode) {
             const shortXpath = buildOptimizedRelativeXPath(contextNode);
             if (shortXpath) {
-                copyToClipboard(shortXpath, 'Copied Short XPath!');
+                copyToClipboard(shortXpath, 'Đã copy XPath ngắn!');
             }
         }
     });
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function sendCommandWithParams(command, bodyParams = {}) {
     try {
-        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Executing Command...';
+        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang thực thi lệnh...';
         elLoading.style.display = 'flex';
         
         const res = await fetch(`${BASE_URL}/api/android/${currentSerial}/command/${command}`, {
@@ -284,12 +284,12 @@ async function sendCommandWithParams(command, bodyParams = {}) {
         if (!res.ok) throw new Error('Command failed');
         
         // Reload data after a brief delay to allow device to render
-        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Device settling...';
+        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Thiết bị đang phản hồi...';
         setTimeout(() => loadData(), 500);
     } catch (err) {
         console.error(err);
         elLoading.style.display = 'none';
-        showToast('Failed to send command: ' + err.message);
+        showToast('Lỗi khi gửi lệnh: ' + err.message);
     }
 }
 
@@ -351,7 +351,7 @@ async function sendCommand(command) {
                               result.resultType === XPathResult.NUMBER_TYPE ? result.numberValue : 
                               result.booleanValue;
                               
-                    showToast('Result: ' + val);
+                    showToast('Kết quả: ' + val);
                     updateXPathSearchUI();
                     return;
                 }
@@ -474,7 +474,7 @@ async function sendCommand(command) {
             const xmlFile = document.getElementById('file-hierarchy').files[0];
             
             if (!imgFile || !xmlFile) {
-                showToast("Please select both an image and a hierarchy file.");
+                showToast("Vui lòng chọn ảnh chụp màn hình và file cấu trúc.");
                 return;
             }
             
@@ -552,7 +552,7 @@ async function handleOfflineUpload(imgFile, xmlFile) {
     elOverlay.innerHTML = '';
     elTree.innerHTML = '';
     selectNode(null);
-    elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Processing Offline Files...</div>';
+    elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Đang xử lý file ngoại tuyến...</div>';
     
     try {
         // 1. Read Image
@@ -589,13 +589,13 @@ async function handleOfflineUpload(imgFile, xmlFile) {
         prepareHierarchyData(hierarchyData);
         
         // Disable live device actions
-        document.getElementById('device-serial').textContent = 'Offline Mode';
-        document.getElementById('device-status-text').textContent = 'Offline';
+        document.getElementById('device-serial').textContent = 'Chế độ ngoại tuyến';
+        document.getElementById('device-status-text').textContent = 'Ngoại tuyến';
         document.getElementById('device-status-text').className = 'device-status-text off';
         
     } catch (err) {
         console.error(err);
-        showToast('Error loading offline files: ' + err.message);
+        showToast('Lỗi khi tải file ngoại tuyến: ' + err.message);
     } finally {
         elLoading.style.display = 'none';
     }
@@ -742,7 +742,7 @@ async function loadData() {
 
     try {
         // Reset loading text
-        elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Fetching UI Hierarchy...</div>';
+        elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Đang lấy cấu trúc giao diện...</div>';
         
         // Load Image and Hierarchy concurrently for faster performance
         const imgUrl = `${BASE_URL}/api/android/${currentSerial}/screenshot/0?t=${Date.now()}`;
@@ -762,17 +762,17 @@ async function loadData() {
             const screenStatus = await screenResponse.json();
             const statusEl = document.getElementById('device-status-text');
             if (screenStatus.is_on) {
-                statusEl.textContent = 'Screen On';
+                statusEl.textContent = 'Màn hình bật';
                 statusEl.classList.remove('off');
             } else {
-                statusEl.textContent = 'Screen Off';
+                statusEl.textContent = 'Màn hình tắt';
                 statusEl.classList.add('off');
             }
         }
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) throw new Error('Failed to fetch hierarchy JSON. Status: ' + response.status);
+        if (!response.ok) throw new Error('Lỗi lấy file JSON cấu trúc. Trạng thái: ' + response.status);
         hierarchyData = await response.json();
 
         // Ensure natural dimensions exist on image to calculate scale
@@ -789,8 +789,8 @@ async function loadData() {
         elLoading.innerHTML = `
             <div style="color: #ff5252; text-align: center; max-width: 80%; padding: 20px; background: rgba(0,0,0,0.8); border-radius: 8px;">
                 <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px; margin-bottom: 10px;"></i>
-                <div style="margin-bottom: 15px;">Error: ${err.message}</div>
-                <button onclick="loadData()" style="padding: 8px 16px; background: #1d8cf8; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry</button>
+                <div style="margin-bottom: 15px;">Lỗi: ${err.message}</div>
+                <button onclick="loadData()" style="padding: 8px 16px; background: #1d8cf8; color: white; border: none; border-radius: 4px; cursor: pointer;">Thử lại</button>
             </div>
         `;
     }

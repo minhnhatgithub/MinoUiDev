@@ -11,6 +11,37 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }
     });
+
+    // Search filter for devices table
+    const searchInput = document.getElementById('search-device');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#devices-list tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                if (row.querySelector('.loading-text')) return;
+                
+                // Get the text content of the row (excluding the hidden inputs/buttons if we want to be strict, but row.textContent is fine)
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update page info
+            const totalDevicesEl = document.getElementById('total-devices');
+            const pageInfoEl = document.getElementById('page-info');
+            if (pageInfoEl && totalDevicesEl) {
+                const total = totalDevicesEl.textContent;
+                pageInfoEl.textContent = visibleCount > 0 ? `1-${visibleCount} of ${total} (Filtered)` : `0 of ${total}`;
+            }
+        });
+    }
 });
 
 async function fetchServerInfo() {
@@ -69,7 +100,7 @@ async function fetchDevices() {
                 <td>${status}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-action btn-edit" onclick="window.location.href='inspector?serial=' + '${serial}'">VIEW XPATH</button>
+                        <button class="btn-action btn-edit" onclick="window.location.href='inspector.html?serial=' + '${serial}'">VIEW XPATH</button>
                     </div>
                 </td>
             `;
