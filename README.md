@@ -26,7 +26,8 @@
 
 ## 🚀 Trải nghiệm (Screenshots)
 
-*(Thêm hình ảnh screenshot của màn hình Dark Mode và Light Mode tại đây)*
+<img width="1917" height="935" alt="image" src="https://github.com/user-attachments/assets/11b8de16-c62d-4c2f-ad66-3cc7a5c85d4d" />
+
 
 ## 🛠️ Cài đặt & Sử dụng
 
