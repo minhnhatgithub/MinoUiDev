@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MinouiDev XPath Inspector</title>
     <link rel="icon" href="logo.jpg">
-    <link rel="stylesheet" href="inspector.css?v=51">
+    <link rel="stylesheet" href="inspector.css?v=61">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,6 +23,7 @@
         </div>
         <div class="header-right" style="display: flex; align-items: center; gap: 15px;">
             <div class="gtranslate_wrapper"></div>
+            <button id="btn-toggle-theme" class="btn btn-action" title="Giao diện Sáng/Tối"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
             <button id="btn-upload" class="btn btn-action"
                 style="background: var(--hover-bg); border-color: var(--border-color); color: var(--text-main); margin-right: 8px;"><i
                     class="fa-solid fa-file-arrow-up"></i> Tải lên (Dump)</button>
@@ -35,8 +36,12 @@
         <section class="panel-left" id="panel-left" style="flex: 0 1 auto; min-width: 300px;">
             <div class="device-container">
                 <!-- Device Header (Power Button) -->
-                <div class="device-header">
+                <div class="device-header" style="position: relative; display: flex; justify-content: space-between; align-items: center;">
                     <span class="device-status-text" id="device-status-text">Màn hình bật</span>
+                    <div style="position: absolute; left: 50%; transform: translateX(-50%); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); display: flex; gap: 15px;">
+                        <span>X: <span id="hover-x" style="display: inline-block; width: 30px; text-align: left;">-</span></span>
+                        <span>Y: <span id="hover-y" style="display: inline-block; width: 30px; text-align: left;">-</span></span>
+                    </div>
                     <div>
                         <button class="header-btn" id="btn-toggle-bounds" title="Bật/tắt viền (Bounds)"
                             style="margin-right: 10px;"><i class="fa-solid fa-vector-square"></i></button>
@@ -60,16 +65,7 @@
                     <button class="nav-btn" id="btn-nav-back" title="Trở về"><i class="fa-solid fa-reply"
                             style="transform: scaleX(-1);"></i></button>
                 </div>
-                <div class="device-footer"
-                    style="background-color: #1a1a27; height: 25px; display: flex; align-items: center; justify-content: center; position: relative; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8b8ea8; border-top: 1px solid #3d3f54;">
-                    X: <span id="hover-x"
-                        style="display: inline-block; width: 40px; text-align: left; margin-left: 5px;">-</span>
-                    Y: <span id="hover-y"
-                        style="display: inline-block; width: 40px; text-align: left; margin-left: 5px;">-</span>
-                    <button id="btn-clear-pings"
-                        style="position: absolute; right: 10px; background: transparent; border: none; color: #bf616a; cursor: pointer; font-size: 12px;"
-                        title="Xóa tất cả Ping (Esc)"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
+
             </div>
         </section>
 
@@ -82,7 +78,7 @@
                 <button class="tab-btn active" data-tab="tab-hierarchy">Cây cấu trúc (Hierarchy)</button>
                 <button class="tab-btn" data-tab="tab-demo">Demo (HAtxLib)</button>
                 <button class="tab-btn" data-tab="tab-guide">Hướng dẫn</button>
-                <button class="tab-btn" data-tab="tab-donate" style="color: #e5c07b;"><i
+                <button class="tab-btn" data-tab="tab-donate" style="color: var(--accent-yellow);"><i
                         class="fa-solid fa-mug-hot"></i> Ủng hộ</button>
             </div>
 
@@ -160,8 +156,8 @@
                     
                     <!-- Header -->
                     <div style="margin-bottom: 40px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 30px;">
-                        <h2 style="margin: 0 0 10px 0; font-weight: 700; font-size: 36px; color: #fff;">Hướng dẫn nhanh HAtxLib C#</h2>
-                        <p style="margin: 0; color: #9ca3af; font-size: 16px;">Tất cả những gì bạn cần để tự động hóa UI Android trực tiếp từ C# bằng XPath tạo bởi Minoui.</p>
+                        <h2 style="margin: 0 0 10px 0; font-weight: 700; font-size: 36px; color: var(--text-light);">Hướng dẫn nhanh HAtxLib C#</h2>
+                        <p style="margin: 0; color: var(--text-muted); font-size: 16px;">Tất cả những gì bạn cần để tự động hóa UI Android trực tiếp từ C# bằng XPath tạo bởi Minoui.</p>
                     </div>
 
                     <!-- Split Layout -->
@@ -170,23 +166,23 @@
                         <!-- Left Column: Features & Steps -->
                         <div>
                             <div style="margin-bottom: 30px;">
-                                <h3 style="color: #e5e7eb; margin: 0 0 15px 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                                <h3 style="color: var(--text-light); margin: 0 0 15px 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
                                     <i class="fa-solid fa-bolt" style="color: var(--accent-green);"></i> Tăng tốc quá trình tự động hóa
                                 </h3>
-                                <p style="color: #9ca3af; line-height: 1.6; margin-bottom: 20px;">HAtxLib cho phép bạn tương tác trực tiếp với các thành phần Android. Chỉ cần click, copy XPath từ Minoui và dán vào script C# của bạn.</p>
+                                <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">HAtxLib cho phép bạn tương tác trực tiếp với các thành phần Android. Chỉ cần click, copy XPath từ Minoui và dán vào script C# của bạn.</p>
                                 
                                 <div style="display: flex; flex-direction: column; gap: 15px;">
                                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px;">
-                                        <div style="color: #fff; font-weight: 600; margin-bottom: 5px;">1. Kết nối thiết bị</div>
-                                        <div style="color: #8b949e; font-size: 14px;">Thiết lập một kết nối ổn định thông qua ADB.</div>
+                                        <div style="color: var(--text-light); font-weight: 600; margin-bottom: 5px;">1. Kết nối thiết bị</div>
+                                        <div style="color: var(--text-muted); font-size: 14px;">Thiết lập một kết nối ổn định thông qua ADB.</div>
                                     </div>
                                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px;">
-                                        <div style="color: #fff; font-weight: 600; margin-bottom: 5px;">2. Tìm phần tử</div>
-                                        <div style="color: #8b949e; font-size: 14px;">Sử dụng các XPath mạnh mẽ để tìm kiếm đối tượng một cách chính xác.</div>
+                                        <div style="color: var(--text-light); font-weight: 600; margin-bottom: 5px;">2. Tìm phần tử</div>
+                                        <div style="color: var(--text-muted); font-size: 14px;">Sử dụng các XPath mạnh mẽ để tìm kiếm đối tượng một cách chính xác.</div>
                                     </div>
                                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px;">
-                                        <div style="color: #fff; font-weight: 600; margin-bottom: 5px;">3. Thao tác & Kiểm tra</div>
-                                        <div style="color: #8b949e; font-size: 14px;">Thực hiện click, vuốt, nhập chữ và kiểm tra các trạng thái.</div>
+                                        <div style="color: var(--text-light); font-weight: 600; margin-bottom: 5px;">3. Thao tác & Kiểm tra</div>
+                                        <div style="color: var(--text-muted); font-size: 14px;">Thực hiện click, vuốt, nhập chữ và kiểm tra các trạng thái.</div>
                                     </div>
                                 </div>
                             </div>
@@ -195,8 +191,8 @@
                         <!-- Right Column: Code Snippet -->
                         <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: #161b22; border-bottom: 1px solid #30363d;">
-                                <span style="color: #8b949e; font-family: monospace; font-size: 13px;">Example.cs</span>
-                                <button onclick="copyToClipboard(document.getElementById('demo-code').textContent, 'Đã copy đoạn code!')" style="background: transparent; border: 1px solid #30363d; color: #8b949e; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.color='#c9d1d9'; this.style.borderColor='#8b949e'" onmouseout="this.style.color='#8b949e'; this.style.borderColor='#30363d'">
+                                <span style="color: var(--text-muted); font-family: monospace; font-size: 13px;">Example.cs</span>
+                                <button onclick="copyToClipboard(document.getElementById('demo-code').textContent, 'Đã copy đoạn code!')" style="background: transparent; border: 1px solid #30363d; color: var(--text-muted); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.color='#c9d1d9'; this.style.borderColor='#8b949e'" onmouseout="this.style.color='#8b949e'; this.style.borderColor='#30363d'">
                                     <i class="fa-regular fa-copy"></i> Sao chép
                                 </button>
                             </div>
@@ -205,26 +201,26 @@
 <span style="color: #ff7b72;">using</span> HAtxLib;
 <span style="color: #ff7b72;">using</span> HAtxLib.UIAutomator;
 
-<span style="color: #8b949e; font-style: italic;">// Kết nối thiết bị</span>
+<span style="color: var(--text-muted); font-style: italic;">// Kết nối thiết bị</span>
 <span style="color: #d2a8ff;">HAtx</span> atx = <span style="color: #ff7b72;">new</span> <span style="color: #d2a8ff;">HAtx</span>(<span style="color: #a5d6ff;">"SERIAL_DEVICE"</span>, <span style="color: #79c0ff;">true</span>);
 
-<span style="color: #8b949e; font-style: italic;">// Tìm phần tử và click</span>
+<span style="color: var(--text-muted); font-style: italic;">// Tìm phần tử và click</span>
 atx.Node(By.Xpath(<span style="color: #a5d6ff;">"//*[@text='Bộ sưu tập']"</span>)).Click();
 
-<span style="color: #8b949e; font-style: italic;">// Kiểm tra phần tử có tồn tại hay không</span>
+<span style="color: var(--text-muted); font-style: italic;">// Kiểm tra phần tử có tồn tại hay không</span>
 <span style="color: #ff7b72;">bool</span> isExist = atx.Node(By.Xpath(<span style="color: #a5d6ff;">"//*[@text='Bộ sưu tập']"</span>)).Exists();
 
-<span style="color: #8b949e; font-style: italic;">// Lấy thông tin thuộc tính</span>
+<span style="color: var(--text-muted); font-style: italic;">// Lấy thông tin thuộc tính</span>
 <span style="color: #d2a8ff;">NodeObj</span> info = atx.Node(By.Xpath(<span style="color: #a5d6ff;">"//*[@resource-id='com.example:id/title']"</span>)).Info;
 <span style="color: #ff7b72;">string</span> text = info.Text;
 <span style="color: #ff7b72;">bool</span> isClickable = info.Clickable;
 
-<span style="color: #8b949e; font-style: italic;">// Các thao tác cơ bản</span>
+<span style="color: var(--text-muted); font-style: italic;">// Các thao tác cơ bản</span>
 atx.Click(<span style="color: #79c0ff;">500f</span>, <span style="color: #79c0ff;">800f</span>); 
 atx.Swipe(<span style="color: #79c0ff;">500f</span>, <span style="color: #79c0ff;">1500f</span>, <span style="color: #79c0ff;">500f</span>, <span style="color: #79c0ff;">500f</span>, <span style="color: #79c0ff;">500</span>); 
 atx.ImeInputText(<span style="color: #a5d6ff;">"Xin chào Việt Nam"</span>, clear: <span style="color: #79c0ff;">true</span>); 
 
-<span style="color: #8b949e; font-style: italic;">// Điều khiển hệ thống</span>
+<span style="color: var(--text-muted); font-style: italic;">// Điều khiển hệ thống</span>
 atx.Press(<span style="color: #d2a8ff;">HAtx</span>.PressKey.Home); 
 atx.AppStart(<span style="color: #a5d6ff;">"com.android.settings"</span>); 
 </pre>
@@ -263,43 +259,43 @@ atx.AppStart(<span style="color: #a5d6ff;">"com.android.settings"</span>);
                     dẫn sử dụng (MinouiDev)</h2>
 
                 <div
-                    style="background: #1a1a27; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-bottom: 20px;">
-                    <h3 style="color: #61afef; margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-location-dot"
+                    style="background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-bottom: 20px;">
+                    <h3 style="color: var(--accent-blue); margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-location-dot"
                             style="margin-right: 8px;"></i> Công cụ Ping tọa độ</h3>
-                    <ul style="line-height: 1.8; color: #a3be8c; padding-left: 20px; margin-bottom: 0;">
+                    <ul style="line-height: 1.8; color: var(--text-main); padding-left: 20px; margin-bottom: 0;">
                         <li><strong>Thêm Ping:</strong> Giữ <kbd
-                                style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">Ctrl</kbd>
-                            + <kbd style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">P</kbd>
+                                style="background: var(--bg-overlay); padding: 2px 6px; border-radius: 4px; color: var(--text-light);">Ctrl</kbd>
+                            + <kbd style="background: var(--bg-overlay); padding: 2px 6px; border-radius: 4px; color: var(--text-light);">P</kbd>
                             và <strong>Click chuột trái</strong> vào vị trí bất kỳ trên điện thoại.</li>
                         <li><strong>Xóa một Ping:</strong> <strong>Click đúp chuột</strong> vào biểu tượng Ping muốn
                             xóa.</li>
                         <li><strong>Xóa toàn bộ Ping:</strong> Nhấn phím <kbd
-                                style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">Esc</kbd>
+                                style="background: var(--bg-overlay); padding: 2px 6px; border-radius: 4px; color: var(--text-light);">Esc</kbd>
                             hoặc click vào nút <strong>Thùng rác <i class="fa-solid fa-trash-can"
-                                    style="color: #bf616a;"></i></strong> ở thanh Footer.</li>
+                                    style="color: var(--accent-red);"></i></strong> ở thanh Footer.</li>
                     </ul>
                 </div>
 
                 <div
-                    style="background: #1a1a27; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);">
-                    <h3 style="color: #61afef; margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-sitemap"
+                    style="background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);">
+                    <h3 style="color: var(--accent-blue); margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-sitemap"
                             style="margin-right: 8px;"></i> Thao tác nâng cao</h3>
-                    <ul style="line-height: 1.8; color: #a3be8c; padding-left: 20px; margin-bottom: 0;">
+                    <ul style="line-height: 1.8; color: var(--text-main); padding-left: 20px; margin-bottom: 0;">
                         <li><strong>Click chuẩn xác:</strong> Di chuột qua cây thư mục (Hierarchy) bên phải, hệ thống sẽ
                             tự động vẽ viền đỏ chỉ vị trí UI trên thiết bị.</li>
                         <li><strong>Menu chức năng:</strong> <strong>Bấm chuột phải</strong> vào một khung UI bất kỳ
                             trên điện thoại để hiện Menu <strong>Copy XPath</strong> hoặc <strong>Tap Element</strong>.
                         </li>
                         <li><strong>Làm mới (Refresh):</strong> Nhấn phím <kbd
-                                style="background: #333; padding: 2px 6px; border-radius: 4px; color: #fff;">F5</kbd> để
+                                style="background: var(--bg-overlay); padding: 2px 6px; border-radius: 4px; color: var(--text-light);">F5</kbd> để
                             tải lại giao diện thiết bị.</li>
                     </ul>
                 </div>
                 <div
-                    style="background: #1a1a27; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-top: 20px;">
-                    <h3 style="color: #61afef; margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-headset"
+                    style="background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-top: 20px;">
+                    <h3 style="color: var(--accent-blue); margin-top: 0; margin-bottom: 10px;"><i class="fa-solid fa-headset"
                             style="margin-right: 8px;"></i> Liên hệ Hỗ trợ</h3>
-                    <p style="color: #a3be8c; line-height: 1.6; margin-bottom: 15px;">Nếu bạn cần tư vấn về sản phẩm,
+                    <p style="color: var(--text-main); line-height: 1.6; margin-bottom: 15px;">Nếu bạn cần tư vấn về sản phẩm,
                         báo lỗi hoặc có bất kỳ câu hỏi nào, vui lòng liên hệ trực tiếp với chúng tôi qua Messenger.</p>
                     <a href="https://www.facebook.com/messages/t/9510917015691263/?text=Xin%20ch%C3%A0o%20m%C3%ACnh%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20v%E1%BB%81%20s%E1%BA%A3n%20ph%E1%BA%A9m%20c%E1%BB%A7a%20b%E1%BA%A1n%2Cb%E1%BA%A1n%20h%E1%BB%97%20tr%E1%BB%A3%20m%C3%ACnh%20nh%C3%A9"
                         target="_blank"
@@ -313,23 +309,23 @@ atx.AppStart(<span style="color: #a5d6ff;">"com.android.settings"</span>);
                 style="display: none; flex: 1; padding: 30px; overflow-y: auto; color: var(--text-main); font-size: 15px;">
                 <h2
                     style="margin-top: 0; color: var(--text-main); font-weight: 500; font-size: 22px; margin-bottom: 20px;">
-                    <i class="fa-solid fa-mug-hot" style="color: #e5c07b; margin-right: 12px;"></i> Ủng hộ MinouiDev
+                    <i class="fa-solid fa-mug-hot" style="color: var(--accent-yellow); margin-right: 12px;"></i> Ủng hộ MinouiDev
                 </h2>
 
-                <p style="color: #a3be8c; line-height: 1.6; margin-bottom: 25px;">Nếu bạn thấy công cụ này hữu ích và
+                <p style="color: var(--text-main); line-height: 1.6; margin-bottom: 25px;">Nếu bạn thấy công cụ này hữu ích và
                     giúp tiết kiệm thời gian cho dự án của mình, bạn có thể ủng hộ tác giả một ly cà phê để có thêm động
                     lực phát triển nhé! ❤️</p>
 
                 <div
-                    style="background: #1a1a27; padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                    style="background: var(--bg-card); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
                     <div style="flex: 1; min-width: 250px;">
-                        <h3 style="color: #61afef; margin-top: 0; margin-bottom: 15px;"><i
+                        <h3 style="color: var(--accent-blue); margin-top: 0; margin-bottom: 15px;"><i
                                 class="fa-solid fa-building-columns" style="margin-right: 8px;"></i> Chuyển khoản ngân
                             hàng</h3>
                         <p style="margin: 8px 0; color: var(--text-light);"><strong>Ngân hàng:</strong> MB Bank (Quân
                             Đội)</p>
                         <p style="margin: 8px 0; color: var(--text-light);"><strong>Số tài khoản:</strong> <span
-                                style="color: #e5c07b; font-weight: bold; font-size: 16px;">5966866868</span></p>
+                                style="color: var(--accent-yellow); font-weight: bold; font-size: 16px;">5966866868</span></p>
                         <p style="margin: 8px 0; color: var(--text-light);"><strong>Chủ tài khoản:</strong> LE PHAM MINH
                             NHAT</p>
                     </div>
@@ -367,6 +363,16 @@ atx.AppStart(<span style="color: #a5d6ff;">"com.android.settings"</span>);
         <div class="menu-item" id="menu-tap"><i class="fa-solid fa-hand-pointer"></i> Chạm thử (Tap Element)</div>
     </div>
 
+    <!-- Node Tooltip -->
+    <div id="node-tooltip" class="node-tooltip" style="display: none;">
+        <div class="tooltip-header">
+            <span id="tt-class"></span>
+            <span id="tt-bounds"></span>
+        </div>
+        <div class="tooltip-body" id="tt-body">
+        </div>
+    </div>
+
     <!-- Toast Message -->
     <div id="toast-message" class="toast-message"></div>
 
@@ -389,21 +395,21 @@ atx.AppStart(<span style="color: #a5d6ff;">"com.android.settings"</span>);
                     <label style="display: block; margin-bottom: 5px; font-weight: 500;">Ảnh chụp màn hình (.png,
                         .jpg)</label>
                     <input type="file" id="file-image" accept="image/png, image/jpeg"
-                        style="width: 100%; padding: 8px; background: #1a1a27; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main);">
+                        style="width: 100%; padding: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main);">
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 5px; font-weight: 500;">File cấu trúc Dump (.xml, .json,
                         .txt)</label>
                     <input type="file" id="file-hierarchy" accept=".xml, .json, .txt"
-                        style="width: 100%; padding: 8px; background: #1a1a27; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main);">
+                        style="width: 100%; padding: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main);">
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button id="btn-cancel-upload" class="btn"
                         style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main);">Hủy</button>
                     <button id="btn-submit-upload" class="btn"
-                        style="background: var(--accent-green); border: none; color: #fff;"><i
+                        style="background: var(--accent-green); border: none; color: var(--text-light);"><i
                             class="fa-solid fa-check"></i> Tải file lên</button>
                 </div>
             </div>
@@ -412,7 +418,7 @@ atx.AppStart(<span style="color: #a5d6ff;">"com.android.settings"</span>);
 
     <script>window.gtranslateSettings = {"default_language":"vi","wrapper_selector":".gtranslate_wrapper"}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/dropdown.js" defer></script>
-    <script src="inspector.js?v=46"></script>
+    <script src="inspector.js?v=59"></script>
 </body>
 
 </html>

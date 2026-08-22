@@ -882,7 +882,13 @@ function renderBoundingBoxes(rootNode) {
             box.style.top = (offsetY + (rect.y * imageScaleY)) + 'px';
             box.style.width = (rect.width * imageScaleX) + 'px';
             box.style.height = (rect.height * imageScaleY) + 'px';
-            box.style.zIndex = node._depth || 1;
+            
+            // Calculate area to determine z-index (Inverse Area trick)
+            // Smaller boxes get higher z-index so they are always clickable when inside larger boxes.
+            // This prevents parents or invisible full-screen overlays from intercepting clicks
+            // on smaller UI elements like buttons or tabs.
+            const area = rect.width * rect.height;
+            box.style.zIndex = Math.floor(100000000 - area);
 
             box.addEventListener('mouseenter', () => hoverNode(node._id, true));
             box.addEventListener('mouseleave', () => hoverNode(node._id, false));
@@ -1015,7 +1021,89 @@ function hoverNode(id, isHover) {
         
         const treeEl = document.getElementById('tree-' + id);
         if (treeEl) treeEl.classList.add('hovered');
+        
+        if (hierarchyData) {
+            const node = findNodeById(hierarchyData, id);
+            if (node) showTooltip(node, id);
+        }
+    } else {
+        hideTooltip();
     }
+}
+
+function showTooltip(node, id) {
+    const tooltip = document.getElementById('node-tooltip');
+    if (!tooltip) return;
+    
+    const props = node.properties || {};
+    const nodeClass = props.class || node.name || node.key || 'Node';
+    const rect = getRect(node);
+    const boundsStr = rect ? `${rect.width}×${rect.height}` : '';
+    
+    document.getElementById('tt-class').textContent = nodeClass;
+    document.getElementById('tt-bounds').textContent = boundsStr;
+    
+    const tbody = document.getElementById('tt-body');
+    tbody.innerHTML = '';
+    
+    const toShow = [
+        { k: 'index', v: node._index },
+        { k: 'text', v: props.text },
+        { k: 'resource-id', v: props['resource-id'] },
+        { k: 'content-desc', v: props['content-desc'] },
+        { k: 'enabled', v: props.enabled }
+    ];
+    
+    toShow.forEach(p => {
+        if (p.v !== undefined && p.v !== null && p.v !== '') {
+            const row = document.createElement('div');
+            row.className = 'tt-row';
+            row.innerHTML = `<span class="tt-key">${p.k}</span><span class="tt-val">${p.v}</span>`;
+            tbody.appendChild(row);
+        }
+    });
+    
+    tooltip.style.display = 'block';
+    positionTooltip(id);
+}
+
+function positionTooltip(id) {
+    const tooltip = document.getElementById('node-tooltip');
+    const box = document.getElementById('box-' + id);
+    if (!tooltip || !box || tooltip.style.display === 'none') return;
+    
+    const boxRect = box.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    
+    // The arrow is positioned at left: 20px, with width 12px -> center is at 26px.
+    // To make the arrow tip exactly touch the top-left corner of the box:
+    let left = boxRect.left - 26;
+    
+    // The arrow protrudes by 6px (bottom: -6px).
+    // To make the arrow tip exactly touch the top edge of the box:
+    let top = boxRect.top - tooltipRect.height - 6;
+    
+    if (top < 0) {
+        // Position below the box if not enough space above
+        top = boxRect.bottom + 6;
+        tooltip.classList.add('arrow-top');
+    } else {
+        tooltip.classList.remove('arrow-top');
+    }
+    
+    // Prevent tooltip from going off-screen horizontally
+    if (left < 5) left = 5;
+    if (left + tooltipRect.width > window.innerWidth - 5) {
+        left = window.innerWidth - tooltipRect.width - 5;
+    }
+    
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+}
+
+function hideTooltip() {
+    const tooltip = document.getElementById('node-tooltip');
+    if (tooltip) tooltip.style.display = 'none';
 }
 
 function selectNode(node) {
@@ -1432,4 +1520,120 @@ function copyToClipboard(text, successMessage) {
         console.error('Copy failed', err);
         showToast('Failed to copy');
     });
+}
+
+function initResizers() {
+    // Main resizer (between left canvas and right panel)
+    const resizerMain = document.getElementById('resizer-main');
+    const panelLeft = document.getElementById('panel-left');
+    if (resizerMain && panelLeft) {
+        let isResizing = false;
+        resizerMain.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            e.preventDefault(); // Prevent text selection
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            // Limit min and max width
+            let newWidth = e.clientX;
+            if (newWidth < 300) newWidth = 300;
+            if (newWidth > window.innerWidth - 400) newWidth = window.innerWidth - 400;
+            panelLeft.style.width = newWidth + 'px';
+            panelLeft.style.flex = 'none'; // Ensure width takes precedence
+        });
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = 'default';
+            }
+        });
+    }
+
+    // Data resizer (between properties and hierarchy tree)
+    const resizerData = document.getElementById('resizer-data');
+    const paneProps = document.getElementById('pane-properties');
+    if (resizerData && paneProps) {
+        let isResizingProps = false;
+        resizerData.addEventListener('mousedown', (e) => {
+            isResizingProps = true;
+            document.body.style.cursor = 'col-resize';
+            e.preventDefault();
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizingProps) return;
+            // The resizer is inside the right panel, so its position is relative to panelLeft
+            const panelLeftWidth = panelLeft ? panelLeft.offsetWidth : 0;
+            // We also need to account for the resizer-main width (6px)
+            const rightPanelStartX = panelLeftWidth + 6;
+            
+            let newWidth = e.clientX - rightPanelStartX;
+            if (newWidth < 250) newWidth = 250;
+            
+            // Limit max width (pane-tree needs min 250)
+            const maxPropsWidth = window.innerWidth - rightPanelStartX - 250 - 6; // 6 is resizer-data width
+            if (newWidth > maxPropsWidth) newWidth = maxPropsWidth;
+            
+            paneProps.style.width = newWidth + 'px';
+        });
+        document.addEventListener('mouseup', () => {
+            if (isResizingProps) {
+                isResizingProps = false;
+                document.body.style.cursor = 'default';
+            }
+        });
+    }
+}
+
+// Initialize resizers on script load
+document.addEventListener('DOMContentLoaded', () => {
+    initResizers();
+    initTheme();
+});
+
+function initTheme() {
+    const btnToggleTheme = document.getElementById('btn-toggle-theme');
+    const themeIcon = document.getElementById('theme-icon');
+    
+    // Check saved theme
+    const savedTheme = localStorage.getItem('inspector-theme');
+    if (savedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        if (themeIcon) {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+    }
+    
+    if (btnToggleTheme) {
+        btnToggleTheme.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            let newTheme = 'dark';
+            
+            if (currentTheme !== 'light') {
+                newTheme = 'light';
+            }
+            
+            if (newTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('inspector-theme', 'light');
+                if (themeIcon) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                }
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('inspector-theme', 'dark');
+                if (themeIcon) {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            }
+            
+            // Optional: redraw canvas if colors depend on theme
+            if (window.drawBoundingBoxes) {
+                drawBoundingBoxes(window.hierarchyData);
+            }
+        });
+    }
 }
