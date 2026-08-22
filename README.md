@@ -32,8 +32,8 @@
 ## 🛠️ Cài đặt & Sử dụng
 
 1. **Khởi động Server:** Tool yêu cầu một backend server kết nối với ADB để hoạt động. (Đảm bảo backend của bạn đang chạy ở cổng mặc định).
-2. **Khởi chạy ứng dụng:** Mở thư mục `MinoUiDev` trên web server của bạn (ví dụ: `XAMPP`).
-3. Truy cập địa chỉ trên trình duyệt: `http://localhost/minoui/`
+2. **Khởi chạy ứng dụng:** `minouidev_server.exe`.
+3. Truy cập địa chỉ trên trình duyệt: `https://minhnhatgithub.github.io/MinoUiDev`
 4. Trên giao diện Dashboard, các thiết bị Android đang kết nối ADB sẽ được hiển thị. Nhấp vào tên thiết bị để chuyển đến **Inspector**.
 
 ## 📖 Hướng dẫn nhanh
