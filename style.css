@@ -316,6 +316,8 @@ body {
 
 .table-responsive {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 60vh;
     -webkit-overflow-scrolling: touch;
     width: 100%;
 }
@@ -341,6 +343,10 @@ body {
 .data-table th {
     color: var(--text-muted);
     font-weight: 500;
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-card);
+    z-index: 10;
 }
 
 .text-right {
@@ -383,7 +389,7 @@ body {
 }
 
 .btn-action:hover {
-    color: var(--text-light)$2;
+    color: var(--text-light);
 }
 
 .btn-delete {

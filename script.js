@@ -43,6 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const btnRefresh = document.getElementById('btn-refresh-devices');
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', () => {
+            fetchDevices();
+        });
+    }
 });
 
 async function fetchServerInfo() {

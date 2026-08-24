@@ -1342,18 +1342,32 @@ function updateXPath(node) {
     // 1. auto
     let autoXPath = '';
     let autoMatches = [];
-    if (props['resource-id']) {
+    
+    let resIdMatches = props['resource-id'] && !props['resource-id'].includes('(name removed)') ? getMatchingNodes('resource-id', props['resource-id'], nodeClass) : [];
+    let descMatches = props['content-desc'] ? getMatchingNodes('content-desc', props['content-desc'], nodeClass) : [];
+    let textMatches = props.text ? getMatchingNodes('text', props.text, nodeClass) : [];
+
+    if (resIdMatches.length === 1) {
         autoXPath = `//${nodeClass}[@resource-id="${props['resource-id']}"]`;
-        autoMatches = getMatchingNodes('resource-id', props['resource-id'], nodeClass);
-    } else if (props['content-desc']) {
+        autoMatches = resIdMatches;
+    } else if (descMatches.length === 1) {
         autoXPath = `//${nodeClass}[@content-desc="${props['content-desc']}"]`;
-        autoMatches = getMatchingNodes('content-desc', props['content-desc'], nodeClass);
-    } else if (props.text) {
+        autoMatches = descMatches;
+    } else if (textMatches.length === 1) {
         autoXPath = `//${nodeClass}[@text="${props.text}"]`;
-        autoMatches = getMatchingNodes('text', props.text, nodeClass);
+        autoMatches = textMatches;
     } else {
-        autoXPath = node._xpath;
-        autoMatches = [node];
+        // Fallback to relative if possible
+        const relPath = buildOptimizedRelativeXPath(node);
+        const relMatches = relPath ? evaluateXPath(relPath) : [];
+        if (relMatches.length === 1) {
+            autoXPath = relPath;
+            autoMatches = relMatches;
+        } else {
+            // Absolute path
+            autoXPath = node._xpath;
+            autoMatches = [node];
+        }
     }
     options.push({ strategy: 'auto', label: 'auto', xpath: autoXPath, matches: autoMatches });
     
@@ -1464,6 +1478,12 @@ function updateXPath(node) {
     
     elXpathValue.value = finalXPath;
     
+    // Tạo hiệu ứng flash và tự động focus bôi đen để copy
+    elXpathValue.classList.remove('flash-highlight');
+    void elXpathValue.offsetWidth; // force reflow để reset animation
+    elXpathValue.classList.add('flash-highlight');
+    elXpathValue.select();
+
     // Render match grid
     let grid = document.getElementById('xpath-match-grid');
     if (!grid) {
