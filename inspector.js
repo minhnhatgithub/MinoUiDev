@@ -1325,7 +1325,13 @@ function buildOptimizedRelativeXPath(node) {
 function getCSharpXPath(node) {
     if (!node) return '';
     let rawPath = buildOptimizedRelativeXPath(node);
-    let parts = rawPath.split('/');
+    let parts = rawPath.split('/').filter(Boolean);
+    
+    // If it is a long path without any unique attribute anchor, truncate it to last 3 nodes
+    if (!rawPath.includes('*[@') && parts.length > 3) {
+        parts = parts.slice(-3);
+    }
+    
     let csharpParts = parts.map(part => {
         if (!part) return '';
         if (part.startsWith('*')) return part;
