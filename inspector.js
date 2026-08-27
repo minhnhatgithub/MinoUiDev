@@ -258,6 +258,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    document.getElementById('menu-copy-csharp-xpath').addEventListener('click', () => {
+        if (contextNode && contextNode._xpath) {
+            let csharpXPath = contextNode._xpath.split('/').map(part => {
+                if (!part) return '';
+                let bIdx = part.indexOf('[');
+                let cls = bIdx === -1 ? part : part.substring(0, bIdx);
+                let idx = bIdx === -1 ? '' : part.substring(bIdx);
+                return `node[@class='${cls}']${idx}`;
+            }).join('/');
+            csharpXPath = csharpXPath.replace(/^\/node\[@class='hierarchy'\]\[\d+\]/, '');
+            if (!csharpXPath.startsWith('//') && csharpXPath.startsWith('/')) {
+                csharpXPath = '/' + csharpXPath;
+            }
+            copyToClipboard(csharpXPath, 'Đã copy XPath C# (XmlNode)!');
+        }
+    });
+    
     document.getElementById('menu-tap').addEventListener('click', () => {
         if (contextNode) {
             const rect = getRect(contextNode);
@@ -1434,6 +1451,25 @@ function updateXPath(node) {
     options.push({
         strategy: 'absolute', label: 'absolute',
         xpath: node._xpath,
+        matches: [node]
+    });
+
+    // 8. C# (XmlNode) absolute
+    let csharpXPath = node._xpath.split('/').map(part => {
+        if (!part) return '';
+        let bIdx = part.indexOf('[');
+        let cls = bIdx === -1 ? part : part.substring(0, bIdx);
+        let idx = bIdx === -1 ? '' : part.substring(bIdx);
+        return `node[@class='${cls}']${idx}`;
+    }).join('/');
+    csharpXPath = csharpXPath.replace(/^\/node\[@class='hierarchy'\]\[\d+\]/, '');
+    if (!csharpXPath.startsWith('//') && csharpXPath.startsWith('/')) {
+        csharpXPath = '/' + csharpXPath;
+    }
+
+    options.push({
+        strategy: 'csharp-absolute', label: 'C# Absolute',
+        xpath: csharpXPath,
         matches: [node]
     });
 

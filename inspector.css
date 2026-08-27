@@ -676,8 +676,9 @@ body {
 .xpath-option-label {
     font-weight: 500;
     color: var(--accent-blue); /* A soft blue that fits dark themes */
-    width: 45px;
+    width: 85px;
     font-size: 13px;
+    white-space: nowrap;
 }
 .xpath-option-value {
     flex: 1;
