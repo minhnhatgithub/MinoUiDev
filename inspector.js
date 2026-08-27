@@ -259,19 +259,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     document.getElementById('menu-copy-csharp-xpath').addEventListener('click', () => {
-        if (contextNode && contextNode._xpath) {
-            let csharpXPath = contextNode._xpath.split('/').map(part => {
-                if (!part) return '';
-                let bIdx = part.indexOf('[');
-                let cls = bIdx === -1 ? part : part.substring(0, bIdx);
-                let idx = bIdx === -1 ? '' : part.substring(bIdx);
-                return `node[@class='${cls}']${idx}`;
-            }).join('/');
-            csharpXPath = csharpXPath.replace(/^\/node\[@class='hierarchy'\]\[\d+\]/, '');
-            if (!csharpXPath.startsWith('//') && csharpXPath.startsWith('/')) {
-                csharpXPath = '/' + csharpXPath;
+        if (contextNode) {
+            let csharpXPath = getCSharpXPath(contextNode);
+            if (csharpXPath) {
+                copyToClipboard(csharpXPath, 'Đã copy XPath C# (XmlNode)!');
             }
-            copyToClipboard(csharpXPath, 'Đã copy XPath C# (XmlNode)!');
         }
     });
     
@@ -1330,6 +1322,29 @@ function buildOptimizedRelativeXPath(node) {
     return node._xpath;
 }
 
+function getCSharpXPath(node) {
+    if (!node) return '';
+    let rawPath = buildOptimizedRelativeXPath(node);
+    let parts = rawPath.split('/');
+    let csharpParts = parts.map(part => {
+        if (!part) return '';
+        if (part.startsWith('*')) return part;
+        let bIdx = part.indexOf('[');
+        let cls = bIdx === -1 ? part : part.substring(0, bIdx);
+        let idx = bIdx === -1 ? '' : part.substring(bIdx);
+        if (cls === 'hierarchy') return '';
+        return `node[@class='${cls}']${idx}`;
+    }).filter(Boolean);
+    
+    let res = csharpParts.join('/');
+    if (!res.startsWith('//') && res.startsWith('/')) {
+        res = '/' + res;
+    } else if (!res.startsWith('/')) {
+        res = '//' + res;
+    }
+    return res;
+}
+
 function evaluateXPath(query) {
     if (!window.xmlDoc) return [];
     try {
@@ -1454,21 +1469,11 @@ function updateXPath(node) {
         matches: [node]
     });
 
-    // 8. C# (XmlNode) absolute
-    let csharpXPath = node._xpath.split('/').map(part => {
-        if (!part) return '';
-        let bIdx = part.indexOf('[');
-        let cls = bIdx === -1 ? part : part.substring(0, bIdx);
-        let idx = bIdx === -1 ? '' : part.substring(bIdx);
-        return `node[@class='${cls}']${idx}`;
-    }).join('/');
-    csharpXPath = csharpXPath.replace(/^\/node\[@class='hierarchy'\]\[\d+\]/, '');
-    if (!csharpXPath.startsWith('//') && csharpXPath.startsWith('/')) {
-        csharpXPath = '/' + csharpXPath;
-    }
+    // 8. C# XPath (optimized)
+    let csharpXPath = getCSharpXPath(node);
 
     options.push({
-        strategy: 'csharp-absolute', label: 'C# Absolute',
+        strategy: 'csharp', label: 'C# XPath',
         xpath: csharpXPath,
         matches: [node]
     });
