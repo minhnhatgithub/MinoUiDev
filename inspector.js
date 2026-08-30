@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-refresh').addEventListener('click', loadData);
     document.getElementById('btn-copy-xpath').addEventListener('click', copyXPath);
+    elXpathValue.addEventListener('click', copyXPath);
+    elXpathValue.style.cursor = 'pointer';
+    elXpathValue.title = 'Nhấp để copy XPath';
     
     let currentXPathStrategy = 'auto';
     window.xmlDoc = null;
@@ -60,6 +63,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    window.xpathFormatMode = localStorage.getItem('minoui_xpath_format') || 'standard';
+    const btnXpathFormat = document.getElementById('btn-xpath-format');
+    if (btnXpathFormat) {
+        btnXpathFormat.innerHTML = window.xpathFormatMode === 'csharp' ? '<i class="fa-solid fa-code"></i> XPath: node' : '<i class="fa-solid fa-code"></i> XPath: //';
+        if(window.xpathFormatMode === 'csharp') btnXpathFormat.style.color = 'var(--accent-green)';
+        
+        btnXpathFormat.addEventListener('click', () => {
+            window.xpathFormatMode = window.xpathFormatMode === 'standard' ? 'csharp' : 'standard';
+            localStorage.setItem('minoui_xpath_format', window.xpathFormatMode);
+            
+            btnXpathFormat.innerHTML = window.xpathFormatMode === 'csharp' ? '<i class="fa-solid fa-code"></i> XPath: node' : '<i class="fa-solid fa-code"></i> XPath: //';
+            btnXpathFormat.style.color = window.xpathFormatMode === 'csharp' ? 'var(--accent-green)' : 'var(--text-light)';
+            
+            if (selectedNodeId && hierarchyData) {
+                const node = findNodeById(hierarchyData, selectedNodeId);
+                if (node) updateXPath(node);
+            }
+        });
+    }
+
     document.getElementById('btn-nav-task').addEventListener('click', () => sendCommand('appSwitch'));
     document.getElementById('btn-nav-home').addEventListener('click', () => sendCommand('home'));
     document.getElementById('btn-nav-back').addEventListener('click', () => sendCommand('back'));
@@ -69,11 +92,20 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPower.addEventListener('click', () => sendCommand('power'));
     }
     
-    let showBounds = true;
+    let showBounds = localStorage.getItem('minoui_show_bounds') === 'true';
     const btnToggleBounds = document.getElementById('btn-toggle-bounds');
     if (btnToggleBounds) {
+        if (!showBounds) {
+            elOverlay.classList.add('hide-lines');
+            btnToggleBounds.style.color = '#bf616a';
+        } else {
+            elOverlay.classList.remove('hide-lines');
+            btnToggleBounds.style.color = '';
+        }
+        
         btnToggleBounds.addEventListener('click', () => {
             showBounds = !showBounds;
+            localStorage.setItem('minoui_show_bounds', showBounds);
             if (showBounds) {
                 elOverlay.classList.remove('hide-lines');
                 btnToggleBounds.style.color = '';
@@ -492,6 +524,145 @@ async function sendCommand(command) {
         });
     }
 
+    // C# Search Modal Logic
+    const btnCsharpSearch = document.getElementById('btn-csharp-search');
+    const csharpModal = document.getElementById('csharp-modal');
+    const btnCloseCsharp = document.getElementById('btn-close-csharp');
+    const btnSubmitCsharp = document.getElementById('btn-submit-csharp');
+    const inputCsharp = document.getElementById('input-csharp-xpath');
+    let _wasBoundsOnBeforeCsharp = false;
+    
+    if (btnCsharpSearch && csharpModal) {
+        btnCsharpSearch.addEventListener('click', () => {
+            _wasBoundsOnBeforeCsharp = showBounds;
+            csharpModal.style.display = 'flex';
+            setTimeout(() => inputCsharp.focus(), 100);
+            // Auto hide bounds
+            if (showBounds) {
+                showBounds = false;
+                elOverlay.classList.add('hide-lines');
+                const btnToggleBounds = document.getElementById('btn-toggle-bounds');
+                if (btnToggleBounds) btnToggleBounds.style.color = '#bf616a';
+            }
+        });
+        const closeCsharp = () => {
+            csharpModal.style.display = 'none';
+            if (_wasBoundsOnBeforeCsharp) {
+                _wasBoundsOnBeforeCsharp = false;
+                showBounds = true;
+                elOverlay.classList.remove('hide-lines');
+                const btnToggleBounds = document.getElementById('btn-toggle-bounds');
+                if (btnToggleBounds) btnToggleBounds.style.color = '';
+            }
+        };
+        btnCloseCsharp.addEventListener('click', closeCsharp);
+        csharpModal.addEventListener('click', (e) => {
+            if (e.target === csharpModal) closeCsharp();
+        });
+        
+        btnSubmitCsharp.addEventListener('click', () => {
+            const query = inputCsharp.value.trim();
+            if (!query) return;
+            
+            const resultsContainer = document.getElementById('csharp-results-container');
+            const resultsList = document.getElementById('csharp-results-list');
+            const statusSpan = document.getElementById('csharp-search-status');
+            
+            resultsList.innerHTML = '';
+            _xpathSearchResults = [];
+            _xpathSearchIndex = -1;
+            
+            if (!window.csharpXmlDoc) {
+                statusSpan.textContent = "Dữ liệu cấu trúc chưa sẵn sàng.";
+                statusSpan.style.color = "var(--accent-red)";
+                return;
+            }
+            try {
+                const result = window.csharpXmlDoc.evaluate(query, window.csharpXmlDoc, null, XPathResult.ANY_TYPE, null);
+                
+                if (result.resultType === XPathResult.STRING_TYPE || 
+                    result.resultType === XPathResult.NUMBER_TYPE || 
+                    result.resultType === XPathResult.BOOLEAN_TYPE) {
+                    
+                    let val = result.resultType === XPathResult.STRING_TYPE ? result.stringValue : 
+                              result.resultType === XPathResult.NUMBER_TYPE ? result.numberValue : 
+                              result.booleanValue;
+                              
+                    statusSpan.textContent = 'Kết quả vô hướng: ' + val;
+                    statusSpan.style.color = "var(--accent-green)";
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+
+                let node = result.iterateNext();
+                while (node) {
+                    let id = null;
+                    if (node.nodeType === 1) {
+                        id = node.getAttribute('_id');
+                    }
+                    if (id) {
+                        const jsNode = findNodeById(hierarchyData, id);
+                        if (jsNode && !_xpathSearchResults.includes(jsNode)) {
+                            _xpathSearchResults.push(jsNode);
+                        }
+                    }
+                    node = result.iterateNext();
+                }
+                
+                if (_xpathSearchResults.length === 0) {
+                    statusSpan.textContent = "Không tìm thấy kết quả nào!";
+                    statusSpan.style.color = "var(--accent-red)";
+                    resultsContainer.style.display = 'none';
+                } else {
+                    statusSpan.textContent = `Tìm thấy ${_xpathSearchResults.length} phần tử.`;
+                    statusSpan.style.color = "var(--accent-green)";
+                    resultsContainer.style.display = 'block';
+                    
+                    _xpathSearchResults.forEach((jsNode, index) => {
+                        const props = jsNode.properties || {};
+                        const nClass = props.class || jsNode.name || jsNode.key || 'node';
+                        
+                        let detailHtml = '';
+                        if (props['resource-id']) detailHtml += `<div class="res-badge id-badge"><strong>id</strong>${props['resource-id']}</div>`;
+                        if (props.text) detailHtml += `<div class="res-badge text-badge"><strong>text</strong>${props.text}</div>`;
+                        if (props['content-desc']) detailHtml += `<div class="res-badge desc-badge"><strong>desc</strong>${props['content-desc']}</div>`;
+                        
+                        if(!detailHtml) detailHtml = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Không có id, text, desc</span>`;
+
+                        const elItem = document.createElement('div');
+                        elItem.className = 'csharp-result-item';
+                        elItem.innerHTML = `
+                            <div class="res-header">
+                                <span class="res-index">[${index + 1}]</span>
+                                <span class="res-class">${nClass}</span>
+                            </div>
+                            <div class="res-details">
+                                ${detailHtml}
+                            </div>
+                        `;
+                        
+                        elItem.addEventListener('click', () => {
+                            closeCsharp();
+                            _xpathSearchIndex = index;
+                            
+                            document.querySelectorAll('.tree-node').forEach(uiNode => {
+                                uiNode.style.display = 'flex';
+                            });
+                            updateXPathSearchUI();
+                            selectNode(jsNode);
+                        });
+                        
+                        resultsList.appendChild(elItem);
+                    });
+                }
+            } catch (err) {
+                statusSpan.textContent = "Lỗi: " + err.message;
+                statusSpan.style.color = "var(--accent-red)";
+                resultsContainer.style.display = 'none';
+            }
+        });
+    }
+
     // Resize observer to re-draw boxes if window resizes
     window.addEventListener('resize', () => {
         if (hierarchyData && elImage.src) {
@@ -729,6 +900,33 @@ function buildXMLDoc(data) {
     traverse(data, window.xmlDoc.documentElement);
 }
 
+function buildCSharpXMLDoc(data) {
+    window.csharpXmlDoc = document.implementation.createDocument(null, 'hierarchy', null);
+    if (!data) return;
+    function traverse(jsonNode, xmlParent) {
+        if (!jsonNode) return;
+        let el = window.csharpXmlDoc.createElement('node');
+        let nodeClass = jsonNode.properties?.class || jsonNode.name || jsonNode.key || 'node';
+        el.setAttribute('class', nodeClass);
+        if (jsonNode.properties) {
+            for (const [k, v] of Object.entries(jsonNode.properties)) {
+                try {
+                    let safeKey = k.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                    if (safeKey !== 'class') {
+                        el.setAttribute(safeKey, v);
+                    }
+                } catch (e) {}
+            }
+        }
+        el.setAttribute('_id', jsonNode._id);
+        xmlParent.appendChild(el);
+        if (jsonNode.children) {
+            jsonNode.children.forEach(child => traverse(child, el));
+        }
+    }
+    traverse(data, window.csharpXmlDoc.documentElement);
+}
+
 function prepareHierarchyData(data) {
     nodeIdCounter = 0;
     _resourceIdCounts = {};
@@ -737,6 +935,7 @@ function prepareHierarchyData(data) {
     
     processNode(data, '', 0, 1);
     buildXMLDoc(data);
+    buildCSharpXMLDoc(data);
     const treeHtml = buildTreeHtml(data);
     elTree.innerHTML = treeHtml;
     bindTreeEvents();
@@ -823,24 +1022,31 @@ function calculateScale() {
     const renderW = elImage.width;
     const renderH = elImage.height;
     
-    // Some devices scale down the screenshot, so natural bounds don't match logical bounds.
-    // However, the root node might not cover the full screen (e.g. missing nav bar),
-    // which breaks the aspect ratio if we use both its width and height independently.
-    // Therefore, we determine the scale using the dimension that is most likely to be full screen,
-    // and apply uniform scaling based on the screenshot's aspect ratio.
-    const rootRect = getRect(hierarchyData);
-    let logicalW = naturalW;
-    let logicalH = naturalH;
+    // Find absolute max logical boundaries from the XML tree
+    let maxW = 0, maxH = 0;
+    function traverse(n) {
+        if (!n) return;
+        const rect = getRect(n);
+        if (rect) {
+            if (rect.x + rect.width > maxW) maxW = rect.x + rect.width;
+            if (rect.y + rect.height > maxH) maxH = rect.y + rect.height;
+        }
+        if (n.children) n.children.forEach(traverse);
+    }
+    traverse(hierarchyData);
     
-    if (rootRect && rootRect.width > 0 && rootRect.height > 0) {
-        if (naturalW <= naturalH) {
-            // Portrait: width is usually full screen
-            logicalW = rootRect.width;
-            logicalH = logicalW * (naturalH / naturalW);
+    let logicalW = maxW > 0 ? maxW : naturalW;
+    let logicalH = maxH > 0 ? maxH : naturalH;
+    
+    // Force logical dimensions to exactly match the screenshot's Aspect Ratio.
+    // This compensates for missing nodes (like black navigation bars without UI elements)
+    if (naturalW > 0 && naturalH > 0 && logicalW > 0 && logicalH > 0) {
+        let aspect = naturalW / naturalH;
+        // Adjust the dimension that falls short
+        if (logicalW / logicalH > aspect) {
+            logicalH = logicalW / aspect;
         } else {
-            // Landscape: height is usually full screen
-            logicalH = rootRect.height;
-            logicalW = logicalH * (naturalW / naturalH);
+            logicalW = logicalH * aspect;
         }
     }
     
@@ -1271,12 +1477,13 @@ function buildOptimizedRelativeXPath(node) {
 
     while (current && current.name !== 'hierarchy' && current.key !== 'hierarchy' && current._parent) {
         const props = current.properties || {};
+        const nClass = current.properties?.class || current.name || current.key || 'node';
         
         const resId = props['resource-id'];
         if (resId && !resId.includes('(name removed)')) {
             if (_resourceIdCounts[resId] === 1) {
                 uniqueAncestor = current;
-                baseXpath = `//*[@resource-id="${resId}"]`;
+                baseXpath = `//${nClass}[@resource-id="${resId}"]`;
                 break;
             }
         }
@@ -1285,7 +1492,7 @@ function buildOptimizedRelativeXPath(node) {
         if (desc) {
             if (_contentDescCounts[desc] === 1) {
                 uniqueAncestor = current;
-                baseXpath = `//*[@content-desc="${desc}"]`;
+                baseXpath = `//${nClass}[@content-desc="${desc}"]`;
                 break;
             }
         }
@@ -1294,7 +1501,7 @@ function buildOptimizedRelativeXPath(node) {
         if (textVal) {
             if (_textCounts[textVal] === 1) {
                 uniqueAncestor = current;
-                baseXpath = `//*[@text="${textVal}"]`;
+                baseXpath = `//${nClass}[@text="${textVal}"]`;
                 break;
             }
         }
@@ -1325,7 +1532,8 @@ function buildOptimizedRelativeXPath(node) {
 function getCSharpXPath(node) {
     if (!node) return '';
     let rawPath = buildOptimizedRelativeXPath(node);
-    let parts = rawPath.split('/').filter(Boolean);
+    // Split bằng '/' nhưng BỎ QUA những dấu '/' nằm trong ngoặc kép (vd: android:id/content)
+    let parts = rawPath.split(/\/(?=(?:(?:[^"]*"){2})*[^"]*$)/).filter(Boolean);
     
     // If it is a long path without any unique attribute anchor, truncate it to last 3 nodes
     if (!rawPath.includes('*[@') && parts.length > 3) {
@@ -1372,6 +1580,26 @@ function evaluateXPath(query) {
 
 window.currentXPathStrategy = 'auto';
 
+function formatXPathString(xpath) {
+    if (!xpath) return xpath;
+    if (window.xpathFormatMode === 'standard') return xpath;
+    let parts = xpath.split(/\/(?=(?:(?:[^"]*"){2})*[^"]*$)/).filter(Boolean);
+    let csharpParts = parts.map(part => {
+        if (!part) return '';
+        if (part.startsWith('*')) return part;
+        let bIdx = part.indexOf('[');
+        let cls = bIdx === -1 ? part : part.substring(0, bIdx);
+        let idxOrAttr = bIdx === -1 ? '' : part.substring(bIdx);
+        if (cls === 'hierarchy') return '';
+        if (cls === 'node') return part;
+        return `node[@class='${cls}']${idxOrAttr}`;
+    }).filter(Boolean);
+    let res = csharpParts.join('/');
+    if (xpath.startsWith('//')) return '//' + res;
+    if (xpath.startsWith('/')) return '/' + res;
+    return res;
+}
+
 function updateXPath(node) {
     const props = node.properties || {};
     const nodeClass = props.class || node.name || node.key || '*';
@@ -1407,18 +1635,18 @@ function updateXPath(node) {
             autoMatches = [node];
         }
     }
-    options.push({ strategy: 'auto', label: 'auto', xpath: autoXPath, matches: autoMatches });
+    options.push({ strategy: 'auto', label: 'auto', xpath: formatXPathString(autoXPath), matches: autoMatches });
     
     // 2. id
     if (props['resource-id']) {
         options.push({
             strategy: 'resource-id', label: 'id',
-            xpath: `//${nodeClass}[@resource-id="${props['resource-id']}"]`,
+            xpath: formatXPathString(`//${nodeClass}[@resource-id="${props['resource-id']}"]`),
             matches: getMatchingNodes('resource-id', props['resource-id'], nodeClass)
         });
         options.push({
             strategy: 'resource-id-*', label: 'id (*)',
-            xpath: `//*[@resource-id="${props['resource-id']}"]`,
+            xpath: formatXPathString(`//*[@resource-id="${props['resource-id']}"]`),
             matches: getMatchingNodes('resource-id', props['resource-id'], '*')
         });
     }
@@ -1427,12 +1655,12 @@ function updateXPath(node) {
     if (props['content-desc']) {
         options.push({
             strategy: 'content-desc', label: 'desc',
-            xpath: `//${nodeClass}[@content-desc="${props['content-desc']}"]`,
+            xpath: formatXPathString(`//${nodeClass}[@content-desc="${props['content-desc']}"]`),
             matches: getMatchingNodes('content-desc', props['content-desc'], nodeClass)
         });
         options.push({
             strategy: 'content-desc-*', label: 'desc (*)',
-            xpath: `//*[@content-desc="${props['content-desc']}"]`,
+            xpath: formatXPathString(`//*[@content-desc="${props['content-desc']}"]`),
             matches: getMatchingNodes('content-desc', props['content-desc'], '*')
         });
     }
@@ -1441,12 +1669,12 @@ function updateXPath(node) {
     if (props.text) {
         options.push({
             strategy: 'text', label: 'text',
-            xpath: `//${nodeClass}[@text="${props.text}"]`,
+            xpath: formatXPathString(`//${nodeClass}[@text="${props.text}"]`),
             matches: getMatchingNodes('text', props.text, nodeClass)
         });
         options.push({
             strategy: 'text-*', label: 'text (*)',
-            xpath: `//*[@text="${props.text}"]`,
+            xpath: formatXPathString(`//*[@text="${props.text}"]`),
             matches: getMatchingNodes('text', props.text, '*')
         });
     }
@@ -1454,7 +1682,7 @@ function updateXPath(node) {
     // 5. class
     options.push({
         strategy: 'class', label: 'class',
-        xpath: `//${nodeClass}`,
+        xpath: formatXPathString(`//${nodeClass}`),
         matches: getMatchingNodes('class', nodeClass, nodeClass)
     });
     
@@ -1463,7 +1691,7 @@ function updateXPath(node) {
     if (relativeXPath && relativeXPath !== node._xpath) {
         options.push({
             strategy: 'relative', label: 'relative',
-            xpath: relativeXPath,
+            xpath: formatXPathString(relativeXPath),
             matches: evaluateXPath(relativeXPath)
         });
     }
@@ -1471,18 +1699,19 @@ function updateXPath(node) {
     // 7. absolute
     options.push({
         strategy: 'absolute', label: 'absolute',
-        xpath: node._xpath,
+        xpath: formatXPathString(node._xpath),
         matches: [node]
     });
 
     // 8. C# XPath (optimized)
-    let csharpXPath = getCSharpXPath(node);
-
-    options.push({
-        strategy: 'csharp', label: 'C# XPath',
-        xpath: csharpXPath,
-        matches: [node]
-    });
+    if (window.xpathFormatMode === 'standard') {
+        let csharpXPath = getCSharpXPath(node);
+        options.push({
+            strategy: 'csharp', label: 'C# XPath',
+            xpath: csharpXPath,
+            matches: [node]
+        });
+    }
 
     const dropdown = document.getElementById('xpath-strategy-dropdown');
     dropdown.innerHTML = '';

@@ -12,6 +12,7 @@
 }
 
 :root {
+    color-scheme: dark;
     --bg-main: #1a1a27;
     --bg-panel: #27293d;
     --text-main: #b9b8ce;
@@ -38,6 +39,7 @@
 }
 
 [data-theme="light"] {
+    color-scheme: light;
     --bg-main: #f0f2f5;
     --bg-panel: #ffffff;
     --text-main: #4b5563;
@@ -611,15 +613,22 @@ body {
 
 .xpath-input-box input {
     flex: 1;
-    background: var(--bg-panel);
+    background: var(--bg-main);
     border: 1px solid var(--border-color);
     color: var(--accent-green);
     padding: 8px 10px;
     border-radius: 4px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 13px;
     outline: none;
     width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+.xpath-input-box input:hover {
+    border-color: var(--accent-green);
+    background: var(--hover-bg);
 }
 
 /* XPath Custom Select */
@@ -984,6 +993,10 @@ body {
     height: 32px !important;
     outline: none !important;
     min-width: 120px;
+}
+.gtranslate_wrapper select.gt_selector option {
+    background-color: var(--bg-panel) !important;
+    color: var(--text-main) !important;
 }
 .gtranslate_wrapper select.gt_selector:hover {
     border-color: var(--border-color) !important;
