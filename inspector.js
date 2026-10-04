@@ -397,8 +397,14 @@ async function sendCommand(command) {
         if (query.startsWith('/') || query.startsWith('(')) {
             // Evaluates as XPath or function
             if (!window.xmlDoc) return;
+            
+            // HACK: Convert C# mode XPath `node[@class='X']` back to `X` because window.xmlDoc uses class as tag name
+            let finalQuery = query.replace(/node\[@class=['"]([^'"]+)['"]\]/g, "$1");
+            // Support user's single bracket and format: node[@class='X' and cond] -> X[cond]
+            finalQuery = finalQuery.replace(/node\[@class=['"]([^'"]+)['"]\s+and\s+(.*?)\]/g, "$1[$2]");
+            
             try {
-                const result = window.xmlDoc.evaluate(query, window.xmlDoc, null, XPathResult.ANY_TYPE, null);
+                const result = window.xmlDoc.evaluate(finalQuery, window.xmlDoc, null, XPathResult.ANY_TYPE, null);
                 
                 if (result.resultType === XPathResult.STRING_TYPE || 
                     result.resultType === XPathResult.NUMBER_TYPE || 
