@@ -2066,6 +2066,22 @@ function extractDynamicList(targetNode) {
             // 6. Liên kết trực tiếp (Direct child)
             let rawXPath6 = `//${parentClass}/${childClass}${conditionStr}`;
             if (parentClass !== childClass && rawXPath6 !== rawXPath1) xpaths.push({ label: 'Trực tiếp (Direct Child)', value: rawXPath6 });
+
+            // 7. Cú pháp ngắn gọn dùng != '' (Theo yêu cầu User)
+            let simpleTextCond = [];
+            if (hasDesc) simpleTextCond.push("@content-desc!=''");
+            if (hasText) simpleTextCond.push("@text!=''");
+            
+            if (simpleTextCond.length > 0) {
+                let condStr = `(${simpleTextCond.join(' or ')})`;
+                
+                let rawXPath7 = `//${childClass}[${condStr}]`;
+                xpaths.push({ label: 'Cú pháp độc lập (!= \'\')', value: rawXPath7 });
+                
+                let rawXPath8 = `//${parentClass}//${childClass}[${condStr}]`;
+                if (parentClass === childClass) rawXPath8 = `//${parentClass}[${condStr}]`;
+                xpaths.push({ label: 'Chi tiết + Ngắn gọn (!= \'\')', value: rawXPath8 });
+            }
             
             // Lọc trùng theo value
             let uniqueValues = new Set();
