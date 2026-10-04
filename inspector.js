@@ -299,6 +299,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+
+    document.getElementById('menu-copy-xml').addEventListener('click', () => {
+        if (contextNode) {
+            const xmlStr = convertNodeToXmlDumpString(contextNode, 0, true);
+            copyToClipboard(xmlStr, 'Đã copy toàn bộ mã XML của Node này!');
+        }
+    });
+
+    function convertNodeToXmlDumpString(node, depth = 0, isRoot = true) {
+        if (!node) return "";
+        let xmlStr = "";
+        let indent = "  ".repeat(depth);
+        if (isRoot) {
+            xmlStr += "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n<hierarchy rotation=\"0\">\n";
+            indent = "  "; depth = 1;
+        }
+        xmlStr += indent + "<node";
+        let props = node.properties ? Object.assign({}, node.properties) : {};
+        let nodeClass = props.class || node.name || node.key || 'node';
+        props.class = nodeClass;
+        const stdOrder = ['index', 'text', 'resource-id', 'class', 'package', 'content-desc', 'checkable', 'checked', 'clickable', 'enabled', 'focusable', 'focused', 'scrollable', 'long-clickable', 'password', 'selected', 'visible-to-user', 'bounds'];
+        for (let k of stdOrder) {
+            if (props.hasOwnProperty(k)) {
+                let escapedValue = String(props[k]).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&apos;");
+                xmlStr += " " + k + "=\"" + escapedValue + "\"";
+                delete props[k];
+            }
+        }
+        for (const [k, v] of Object.entries(props)) {
+            let escapedValue = String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&apos;");
+            xmlStr += " " + k + "=\"" + escapedValue + "\"";
+        }
+        if (!node.children || node.children.length === 0) xmlStr += " />\n";
+        else {
+            xmlStr += ">\n";
+            for (const child of node.children) xmlStr += convertNodeToXmlDumpString(child, depth + 1, false);
+            xmlStr += indent + "</node>\n";
+        }
+        if (isRoot) xmlStr += "</hierarchy>";
+        return xmlStr;
+    }
+
     document.getElementById('menu-tap').addEventListener('click', () => {
         if (contextNode) {
             const rect = getRect(contextNode);
