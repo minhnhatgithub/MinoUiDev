@@ -310,6 +310,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.getElementById('menu-extract-list').addEventListener('click', () => {
+        if (contextNode) {
+            extractDynamicList(contextNode);
+        }
+    });
+
+    const dynamicListModal = document.getElementById('dynamic-list-modal');
+    if (dynamicListModal) {
+        document.getElementById('btn-close-dynamic-list').addEventListener('click', () => {
+            dynamicListModal.style.display = 'none';
+        });
+        dynamicListModal.addEventListener('click', (e) => {
+            if (e.target === dynamicListModal) dynamicListModal.style.display = 'none';
+        });
+    }
+
 async function sendCommandWithParams(command, bodyParams = {}) {
     try {
         elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang thực thi lệnh...';
@@ -1583,21 +1599,13 @@ window.currentXPathStrategy = 'auto';
 function formatXPathString(xpath) {
     if (!xpath) return xpath;
     if (window.xpathFormatMode === 'standard') return xpath;
-    let parts = xpath.split(/\/(?=(?:(?:[^"]*"){2})*[^"]*$)/).filter(Boolean);
-    let csharpParts = parts.map(part => {
-        if (!part) return '';
-        if (part.startsWith('*')) return part;
-        let bIdx = part.indexOf('[');
-        let cls = bIdx === -1 ? part : part.substring(0, bIdx);
-        let idxOrAttr = bIdx === -1 ? '' : part.substring(bIdx);
-        if (cls === 'hierarchy') return '';
-        if (cls === 'node') return part;
-        return `node[@class='${cls}']${idxOrAttr}`;
-    }).filter(Boolean);
-    let res = csharpParts.join('/');
-    if (xpath.startsWith('//')) return '//' + res;
-    if (xpath.startsWith('/')) return '/' + res;
-    return res;
+    // Đồng bộ hoàn toàn với logic Regex của C# backend
+    // (?<=\/|^) bắt phía trước là / hoặc bắt đầu chuỗi
+    // ([a-zA-Z][a-zA-Z0-9\.]+) bắt tên class (vd: android.widget.Button)
+    return xpath.replace(/(?<=\/|^)([a-zA-Z][a-zA-Z0-9\.]+)/g, (match) => {
+        if (match === 'node' || match === 'hierarchy') return match;
+        return `node[@class='${match}']`;
+    });
 }
 
 function updateXPath(node) {
@@ -1933,3 +1941,219 @@ function initTheme() {
         });
     }
 }
+
+function extractDynamicList(targetNode) {
+    const listContainer = document.getElementById('dynamic-list-container');
+    const dynamicListModal = document.getElementById('dynamic-list-modal');
+    if (!listContainer || !dynamicListModal) return;
+    
+    listContainer.innerHTML = '';
+    
+    let nodeInfo = (targetNode.properties?.class || 'node') + ' ' + (targetNode.properties?.['resource-id'] || '');
+    document.getElementById('dynamic-list-node-info').textContent = nodeInfo;
+
+    // Tìm parent là danh sách
+    let parent = targetNode;
+    while(parent && parent.properties?.class !== 'androidx.recyclerview.widget.RecyclerView' && parent.properties?.class !== 'android.widget.ListView' && parent.properties?.class !== 'android.widget.ScrollView') {
+        parent = parent.parent;
+    }
+    
+    if (!parent) {
+        parent = targetNode; // Không thấy thì lấy chính nó
+    }
+
+    let results = [];
+    let seenVals = new Set();
+    
+    // Đệ quy lấy data toàn diện
+    function walkAndExtract(n) {
+        if (!n || !n.properties) return;
+        const text = n.properties.text;
+        const desc = n.properties['content-desc'];
+        const id = n.properties['resource-id'];
+        const cls = n.properties.class;
+        const bounds = n.properties.bounds;
+        
+        let val = text || desc;
+        // Bắt các node có text/desc hoặc có resource-id
+        if ((val && val.trim() !== '') || (id && id.trim() !== '')) {
+            let uniqueKey = `${val}-${id}-${cls}`;
+            if (!seenVals.has(uniqueKey)) {
+                seenVals.add(uniqueKey);
+                results.push({
+                    node: n,
+                    text: text,
+                    desc: desc,
+                    id: id,
+                    cls: cls,
+                    bounds: bounds
+                });
+            }
+        }
+        if (n.children) {
+            n.children.forEach(walkAndExtract);
+        }
+    }
+    
+    if(parent.children) {
+        parent.children.forEach(walkAndExtract);
+    } else {
+        walkAndExtract(parent);
+    }
+    
+    // Tạo mảng XPath Đề Xuất
+    const xpathContainer = document.getElementById('dynamic-list-xpath-suggestions');
+    if (xpathContainer) {
+        xpathContainer.innerHTML = '';
+        
+        if (results.length > 0) {
+            let sampleNode = results[0].node;
+            let parentClass = parent.properties?.class || '*';
+            let childClass = sampleNode.properties?.class || '*';
+            
+            let conditions = [];
+            if (sampleNode.properties?.focusable === 'true' || sampleNode.properties?.focusable === true) {
+                conditions.push("@focusable='true'");
+            }
+            if (sampleNode.properties?.clickable === 'true' || sampleNode.properties?.clickable === true) {
+                conditions.push("@clickable='true'");
+            }
+            
+            let hasDesc = !!sampleNode.properties?.['content-desc'];
+            let hasText = !!sampleNode.properties?.text;
+            let hasId = !!sampleNode.properties?.['resource-id'];
+            
+            let textCond = [];
+            if (hasDesc) textCond.push("string-length(@content-desc) > 0");
+            if (hasText) textCond.push("string-length(@text) > 0");
+            
+            if (textCond.length > 0) {
+                conditions.push("(" + textCond.join(" or ") + ")");
+            }
+            
+            let conditionStr = conditions.length > 0 ? `[${conditions.join(' and ')}]` : '';
+            
+            let xpaths = [];
+            
+            // 1. Chi tiết nhất (Cha + Con + Điều kiện)
+            let rawXPath1 = `//${parentClass}//${childClass}${conditionStr}`;
+            if (parentClass === childClass) rawXPath1 = `//${parentClass}${conditionStr}`;
+            xpaths.push({ label: 'Chi tiết nhất (Khuyên dùng)', value: rawXPath1 });
+            
+            // 2. Rút gọn (Cha + Con)
+            let rawXPath2 = `//${parentClass}//${childClass}`;
+            if (parentClass === childClass) rawXPath2 = `//${parentClass}`;
+            if (rawXPath2 !== rawXPath1) xpaths.push({ label: 'Rút gọn (Theo cấu trúc)', value: rawXPath2 });
+            
+            // 3. Theo ID của Con
+            if (hasId) {
+                let xpIdChild = `//${parentClass}//${childClass}[@resource-id='${sampleNode.properties['resource-id']}']`;
+                if (parentClass === childClass) xpIdChild = `//${parentClass}[@resource-id='${sampleNode.properties['resource-id']}']`;
+                xpaths.push({ label: 'Dựa trên ID của Item', value: xpIdChild });
+            }
+            
+            // 4. Theo ID của Cha
+            if (parent.properties?.['resource-id']) {
+                let parentId = parent.properties['resource-id'];
+                let xpIdParent = `//*[@resource-id='${parentId}']//${childClass}${conditionStr}`;
+                xpaths.push({ label: 'Dựa trên ID của List', value: xpIdParent });
+            }
+            
+            // 5. Độc lập (Chỉ dựa vào con)
+            let rawXPath5 = `//${childClass}${conditionStr}`;
+            if (rawXPath5 !== rawXPath1) xpaths.push({ label: 'Truy vấn độc lập (Bỏ qua Cha)', value: rawXPath5 });
+
+            // 6. Liên kết trực tiếp (Direct child)
+            let rawXPath6 = `//${parentClass}/${childClass}${conditionStr}`;
+            if (parentClass !== childClass && rawXPath6 !== rawXPath1) xpaths.push({ label: 'Trực tiếp (Direct Child)', value: rawXPath6 });
+            
+            // Lọc trùng theo value
+            let uniqueValues = new Set();
+            let finalXpaths = [];
+            for (let item of xpaths) {
+                if (!uniqueValues.has(item.value)) {
+                    uniqueValues.add(item.value);
+                    finalXpaths.push(item);
+                }
+            }
+            
+            finalXpaths.forEach((xpObj) => {
+                let formattedXp = window.formatXPathString ? window.formatXPathString(xpObj.value) : xpObj.value;
+                let el = document.createElement('div');
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'space-between';
+                el.style.background = 'rgba(0,0,0,0.3)';
+                el.style.padding = '10px 14px';
+                el.style.borderRadius = '8px';
+                el.style.border = '1px solid rgba(255,255,255,0.05)';
+                el.style.transition = '0.2s';
+                el.onmouseover = () => { el.style.background = 'rgba(0,0,0,0.5)'; el.style.borderColor = 'rgba(52,152,219,0.3)'; };
+                el.onmouseout = () => { el.style.background = 'rgba(0,0,0,0.3)'; el.style.borderColor = 'rgba(255,255,255,0.05)'; };
+                
+                el.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; margin-right: 12px; overflow: hidden;">
+                        <span style="color: var(--accent-green); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">${xpObj.label}</span>
+                        <span style="color: var(--text-light); font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all;">${formattedXp}</span>
+                    </div>
+                    <button class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-blue); cursor: pointer; padding: 6px 12px; border-radius: 6px; flex-shrink: 0; font-size: 12px; transition: 0.2s; font-weight: 600;" onmouseover="this.style.background='rgba(52,152,219,0.2)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--accent-blue)';" onclick="copyToClipboard('${formattedXp.replace(/'/g, "\\'")}', 'Đã copy XPath!')"><i class="fa-regular fa-copy"></i> Copy</button>
+                `;
+                xpathContainer.appendChild(el);
+            });
+            
+        } else {
+            xpathContainer.innerHTML = '<span style="color: var(--accent-red); font-size: 12px;">Không tạo được XPath do không có data.</span>';
+        }
+    }
+
+    // Cập nhật số lượng items
+    const elCount = document.getElementById('dynamic-list-count');
+    if (elCount) {
+        elCount.textContent = results.length;
+    }
+
+    // Render List UI
+    if (results.length === 0) {
+        listContainer.innerHTML = '<div style="color: var(--accent-red); padding: 10px;">Không tìm thấy node nào có Text, Content-desc hay Resource-ID!</div>';
+    } else {
+        results.forEach((item, index) => {
+            const el = document.createElement('div');
+            el.style.padding = '14px 18px';
+            el.style.background = 'var(--bg-card)';
+            el.style.border = '1px solid var(--border-color)';
+            el.style.borderRadius = '8px';
+            el.style.color = 'var(--text-light)';
+            el.style.display = 'flex';
+            el.style.flexDirection = 'column';
+            el.style.gap = '10px';
+            el.style.transition = 'transform 0.2s, box-shadow 0.2s';
+            el.onmouseover = () => { el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)'; };
+            el.onmouseout = () => { el.style.transform = 'none'; el.style.boxShadow = 'none'; };
+            
+            let badges = '';
+            if (item.id) badges += `<span style="background: rgba(255,165,0,0.1); color: #ffa500; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,165,0,0.2);"><i class="fa-solid fa-id-badge" style="margin-right: 4px;"></i>${item.id}</span>`;
+            if (item.cls) badges += `<span style="background: rgba(52,152,219,0.1); color: #3498db; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(52,152,219,0.2);"><i class="fa-solid fa-code" style="margin-right: 4px;"></i>${item.cls.split('.').pop()}</span>`;
+            if (item.bounds) badges += `<span style="background: rgba(46,204,113,0.1); color: #2ecc71; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(46,204,113,0.2);"><i class="fa-solid fa-crop-simple" style="margin-right: 4px;"></i>${item.bounds}</span>`;
+            
+            let titleVal = item.text || item.desc || '[No Text / Desc]';
+            let copyVal = titleVal !== '[No Text / Desc]' ? titleVal : (item.id || item.cls);
+            
+            el.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1; word-break: break-word; font-weight: 500; font-size: 14px; display: flex; align-items: flex-start; gap: 10px;">
+                        <span style="color: var(--text-muted); font-family: monospace; font-size: 11px; background: rgba(255,255,255,0.1); padding: 3px 6px; border-radius: 4px; margin-top: 1px; font-weight: bold;">#${index + 1}</span>
+                        <span style="line-height: 1.4;">${titleVal}</span>
+                    </div>
+                    <button class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--accent-blue); padding: 5px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; margin-left: 12px; transition: 0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.1)'" onmouseout="this.style.background='transparent'" onclick="copyToClipboard('${copyVal.replace(/'/g, "\\'")}', 'Đã copy!')"><i class="fa-regular fa-copy"></i> Copy</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                    ${badges}
+                </div>
+            `;
+            listContainer.appendChild(el);
+        });
+    }
+    
+    dynamicListModal.style.display = 'flex';
+}
+
