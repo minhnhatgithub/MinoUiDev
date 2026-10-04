@@ -398,10 +398,17 @@ async function sendCommand(command) {
             // Evaluates as XPath or function
             if (!window.xmlDoc) return;
             
-            // HACK: Convert C# mode XPath `node[@class='X']` back to `X` because window.xmlDoc uses class as tag name
-            let finalQuery = query.replace(/node\[@class=['"]([^'"]+)['"]\]/g, "$1");
-            // Support user's single bracket and format: node[@class='X' and cond] -> X[cond]
+            // HACK: Chuyển đổi định dạng C# về dạng nội bộ của JS (DOMParser dùng tên class làm tag name)
+            let finalQuery = query;
+            
+            // 1. node[@class='X' and Y] -> X[Y]
             finalQuery = finalQuery.replace(/node\[@class=['"]([^'"]+)['"]\s+and\s+(.*?)\]/g, "$1[$2]");
+            
+            // 2. node[@class='X'] -> X
+            finalQuery = finalQuery.replace(/node\[@class=['"]([^'"]+)['"]\]/g, "$1");
+            
+            // 3. Những chỗ còn lại chứa "node" (ví dụ: //node[@id="..."] hoặc //node) thì đổi thành "*" (Match all elements)
+            finalQuery = finalQuery.replace(/(^|\/|\(|\[)node(?=\[|\/|$|\)|\])/g, "$1*");
             
             try {
                 const result = window.xmlDoc.evaluate(finalQuery, window.xmlDoc, null, XPathResult.ANY_TYPE, null);
