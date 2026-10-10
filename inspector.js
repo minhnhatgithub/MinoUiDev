@@ -1155,7 +1155,12 @@ async function loadData() {
             hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
         } else {
             let parsed = JSON.parse(textData);
-            hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+            if (parsed.jsonrpc && typeof parsed.result === 'string' && parsed.result.trim().startsWith('<')) {
+                let xmlParsed = parseXMLToJSON(parsed.result);
+                hierarchyData = xmlParsed.hierarchy ? xmlParsed.hierarchy : xmlParsed;
+            } else {
+                hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+            }
         }
 
         // Ensure natural dimensions exist on image to calculate scale
@@ -2435,6 +2440,7 @@ function setupTouchpad() {
         setupTouchpad();
     }
 */
+
 
 
 
