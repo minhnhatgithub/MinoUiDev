@@ -1,7 +1,9 @@
-const BASE_URL = 'http://127.0.0.1:20242';
+﻿const BASE_URL = 'http://127.0.0.1:20242';
 
 // State
 let currentSerial = null;
+let currentPort = null;
+let currentPort = null;
 let hierarchyData = null;
 let imageScaleX = 1;
 let imageScaleY = 1;
@@ -28,13 +30,15 @@ const elXpathValue = document.getElementById('xpath-value');
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentSerial = urlParams.get('serial');
+    currentPort = urlParams.get('port');
+    currentPort = urlParams.get('port');
 
-    if (!currentSerial) {
+    if (!currentSerial && !currentPort) {
         showToast('Không có số serial của thiết bị!');
         return;
     }
 
-    elSerial.textContent = currentSerial;
+    elSerial.textContent = currentPort ? ('ATX-' + currentPort) : currentSerial;
 
     document.getElementById('btn-refresh').addEventListener('click', loadData);
     document.getElementById('btn-copy-xpath').addEventListener('click', copyXPath);
@@ -373,14 +377,31 @@ async function sendCommandWithParams(command, bodyParams = {}) {
         elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang thực thi lệnh...';
         elLoading.style.display = 'flex';
         
-        const res = await fetch(`${BASE_URL}/api/android/${currentSerial}/command/${command}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(bodyParams)
-        });
-        if (!res.ok) throw new Error('Command failed');
+                if (typeof currentPort !== 'undefined' && currentPort) {
+            let method = '', params = [];
+            if (command === 'tap') { method = 'click'; params = [bodyParams.x, bodyParams.y]; }
+            else if (command === 'home') { method = 'pressKey'; params = ['home']; }
+            else if (command === 'back') { method = 'pressKey'; params = ['back']; }
+            else if (command === 'appSwitch') { method = 'pressKey'; params = ['recent']; }
+            else if (command === 'power') { method = 'pressKey'; params = ['power']; }
+            if (method) {
+                const res = await fetch(`http://127.0.0.1:${currentPort}/jsonrpc/0`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params })
+                });
+                if (!res.ok) throw new Error('ATX Command failed');
+            }
+        } else {
+            const res = await fetch(`${BASE_URL}/api/android/${currentSerial}/command/${command}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bodyParams)
+            });
+            if (!res.ok) throw new Error('Command failed');
+        }
         
         // Reload data after a brief delay to allow device to render
         elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Thiết bị đang phản hồi...';
@@ -1024,17 +1045,23 @@ async function loadData() {
         elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Đang lấy cấu trúc giao diện...</div>';
         
         // Load Image and Hierarchy concurrently for faster performance
-        const imgUrl = `${BASE_URL}/api/android/${currentSerial}/screenshot/0?t=${Date.now()}`;
-        
-        const controller = new AbortController();
+                const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
-        
+        let imgUrl, fetchHier, fetchScreen;
+        if (typeof currentPort !== 'undefined' && currentPort) {
+            imgUrl = `http://127.0.0.1:${currentPort}/screenshot/0?t=${Date.now()}`;
+            fetchHier = fetch(`http://127.0.0.1:${currentPort}/dump/hierarchy`, { signal: controller.signal });
+            fetchScreen = fetch(`http://127.0.0.1:${currentPort}/info`).catch(() => null);
+        } else {
+            imgUrl = `${BASE_URL}/api/android/${currentSerial}/screenshot/0?t=${Date.now()}`;
+            fetchHier = fetch(`${BASE_URL}/api/android/${currentSerial}/hierarchy?format=json`, { signal: controller.signal });
+            fetchScreen = fetch(`${BASE_URL}/api/android/${currentSerial}/screen`).catch(() => null);
+        }
+
         const [_, response, screenResponse] = await Promise.all([
             loadImage(imgUrl),
-            fetch(`${BASE_URL}/api/android/${currentSerial}/hierarchy?format=json`, {
-                signal: controller.signal
-            }),
-            fetch(`${BASE_URL}/api/android/${currentSerial}/screen`).catch(() => null)
+            fetchHier,
+            fetchScreen
         ]);
         
         if (screenResponse && screenResponse.ok) {
@@ -2227,4 +2254,10 @@ function extractDynamicList(targetNode) {
     
     dynamicListModal.style.display = 'flex';
 }
+
+
+
+
+
+
 

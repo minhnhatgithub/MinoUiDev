@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:20242';
+﻿const BASE_URL = 'http://127.0.0.1:20242';
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchServerInfo();
@@ -222,3 +222,116 @@ function initTheme() {
     }
 }
 
+
+
+// Logic for ATX Direct Connect & Scan
+document.addEventListener('DOMContentLoaded', () => {
+    const btnConnectAtx = document.getElementById('btn-connect-atx');
+    const btnScanAtx = document.getElementById('btn-scan-atx');
+    const inputAtxPort = document.getElementById('atx-port');
+    
+    if (btnConnectAtx && inputAtxPort) {
+        btnConnectAtx.addEventListener('click', async () => {
+            const port = inputAtxPort.value.trim();
+            if (!port) {
+                alert('Vui lòng nhập cổng ATX (ví dụ 51557)');
+                return;
+            }
+            await connectToAtx(port);
+        });
+    }
+
+    if (btnScanAtx) {
+        btnScanAtx.addEventListener('click', async () => {
+            btnScanAtx.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btnScanAtx.disabled = true;
+            
+            try {
+                const foundPort = await scanAtxPorts();
+                if (foundPort) {
+                    inputAtxPort.value = foundPort;
+                    alert('Tìm thấy ATX Agent ở cổng: ' + foundPort);
+                    await connectToAtx(foundPort);
+                } else {
+                    alert('Không tìm thấy ATX Agent nào trong dải cổng 10000-20000.');
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btnScanAtx.innerHTML = '<i class="fa-solid fa-satellite-dish"></i>';
+                btnScanAtx.disabled = false;
+            }
+        });
+    }
+});
+
+async function connectToAtx(port) {
+    try {
+        const response = await fetch(`http://127.0.0.1:${port}/info`);
+        if (!response.ok) throw new Error('Cannot connect');
+        const info = await response.json();
+        
+        const devicesList = document.getElementById('devices-list');
+        if (devicesList.querySelector('.loading-text')) {
+            devicesList.innerHTML = '';
+        }
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><i class="fa-brands fa-android" style="color: #00bf9a;"></i></td>
+            <td style="font-weight: 500;">ATX Agent (Direct)</td>
+            <td>127.0.0.1:${port}</td>
+            <td><span class="status-badge status-online">online</span></td>
+            <td>${info.Display ? info.Display.Width + 'x' + info.Display.Height : 'Unknown'}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action btn-edit" onclick="window.open('inspector.html?port=${port}', '_blank')">VIEW XPATH</button>
+                </div>
+            </td>
+        `;
+        devicesList.appendChild(tr);
+        
+        const totalDevicesEl = document.getElementById('total-devices');
+        if (totalDevicesEl) {
+            totalDevicesEl.textContent = parseInt(totalDevicesEl.textContent || 0) + 1;
+        }
+    } catch (err) {
+        alert('Không thể kết nối đến ATX Agent tại cổng ' + port);
+    }
+}
+
+async function checkPort(port) {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 150);
+        const response = await fetch(`http://127.0.0.1:${port}/info`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.Display) return true;
+        }
+    } catch (e) {
+    }
+    return false;
+}
+
+async function scanAtxPorts() {
+    const startPort = 10000;
+    const endPort = 20000;
+    const batchSize = 100;
+    
+    for (let p = startPort; p <= endPort; p += batchSize) {
+        const promises = [];
+        for (let i = 0; i < batchSize && (p + i) <= endPort; i++) {
+            const port = p + i;
+            promises.push(checkPort(port).then(found => found ? port : null));
+        }
+        
+        const results = await Promise.all(promises);
+        const found = results.find(r => r !== null);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
+}
