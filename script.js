@@ -1,4 +1,24 @@
-﻿const BASE_URL = 'http://127.0.0.1:20242';
+﻿function showCustomAlert(msg, isSuccess = true) {
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.padding = '12px 20px';
+    toast.style.background = isSuccess ? '#00bf9a' : '#ff5252';
+    toast.style.color = '#fff';
+    toast.style.borderRadius = '6px';
+    toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+    toast.style.zIndex = '9999';
+    toast.style.transition = 'opacity 0.3s';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+const BASE_URL = 'http://127.0.0.1:20242';
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchServerInfo();
@@ -234,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConnectAtx.addEventListener('click', async () => {
             const port = inputAtxPort.value.trim();
             if (!port) {
-                alert('Vui lòng nhập cổng ATX (ví dụ 51557)');
+                showCustomAlert('Vui lòng nhập cổng ATX (ví dụ 51557)', false);
                 return;
             }
             await connectToAtx(port);
@@ -250,10 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const foundPort = await scanAtxPorts();
                 if (foundPort) {
                     inputAtxPort.value = foundPort;
-                    alert('Tìm thấy ATX Agent ở cổng: ' + foundPort);
+                    showCustomAlert('Tìm thấy ATX Agent tại cổng: ' + foundPort, true);
                     await connectToAtx(foundPort);
                 } else {
-                    alert('Không tìm thấy ATX Agent nào trong dải cổng 10000-20000.');
+                    showCustomAlert('Không tìm thấy ATX Agent nào trong dải cổng 1000-9000.', false);
                 }
             } catch (err) {
                 console.error(err);
@@ -325,8 +345,8 @@ async function checkPort(port) {
 }
 
 async function scanAtxPorts() {
-    const startPort = 10000;
-    const endPort = 20000;
+    const startPort = 1000;
+    const endPort = 9000;
     const batchSize = 100;
     
     for (let p = startPort; p <= endPort; p += batchSize) {
@@ -348,3 +368,80 @@ async function scanAtxPorts() {
 
 
 
+
+
+
+
+// --- OFFLINE INSPECTOR LOGIC ---
+document.addEventListener('DOMContentLoaded', () => {
+    const btnOffline = document.getElementById('btn-offline-inspector');
+    const offlineModal = document.getElementById('offline-modal');
+    const closeOffline = document.querySelector('.offline-close');
+    const btnStartOffline = document.getElementById('btn-start-offline');
+    const inputOfflineImg = document.getElementById('offline-image');
+    const inputOfflineXml = document.getElementById('offline-xml');
+
+    if (btnOffline && offlineModal) {
+        btnOffline.addEventListener('click', () => {
+            offlineModal.style.display = 'flex';
+        });
+        closeOffline.addEventListener('click', () => {
+            offlineModal.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === offlineModal) offlineModal.style.display = 'none';
+        });
+        
+        btnStartOffline.addEventListener('click', async () => {
+            const imgFile = inputOfflineImg.files[0];
+            const xmlFile = inputOfflineXml.files[0];
+            
+            if (!imgFile && !xmlFile) {
+                showCustomAlert('Vui lòng chọn ít nhất ảnh hoặc file XML', false);
+                return;
+            }
+            
+            btnStartOffline.textContent = 'Đang xử lý...';
+            
+            try {
+                if (imgFile) {
+                    const imgDataUrl = await readFileAsDataURL(imgFile);
+                    sessionStorage.setItem('offline_image', imgDataUrl);
+                } else {
+                    sessionStorage.removeItem('offline_image');
+                }
+                
+                if (xmlFile) {
+                    const xmlText = await readFileAsText(xmlFile);
+                    sessionStorage.setItem('offline_xml', xmlText);
+                } else {
+                    sessionStorage.removeItem('offline_xml');
+                }
+                
+                window.open('inspector?offline=true', '_blank');
+                offlineModal.style.display = 'none';
+            } catch (err) {
+                showCustomAlert('Lỗi đọc file: ' + err.message, false);
+            } finally {
+                btnStartOffline.textContent = 'Mở Inspector';
+            }
+        });
+    }
+});
+
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+    });
+}

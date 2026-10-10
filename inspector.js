@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:20242';
+Ôªøconst BASE_URL = 'http://127.0.0.1:20242';
 
 // State
 let currentSerial = null;
@@ -33,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPort = urlParams.get('port');
 
     if (!currentSerial && !currentPort) {
-        showToast('KhÙng cÛ s? serial c?a thi?t b?!');
+        showToast('Kh√¥ng c√≥ s? serial c?a thi?t b?!');
         return;
     }
 
-    elSerial.textContent = currentPort ? ('ATX-' + currentPort) : currentSerial;
+    elSerial.textContent = window.isOffline ? 'Offline Mode' : (currentPort ? ('ATX-' + currentPort) : currentSerial);
 
     document.getElementById('btn-refresh').addEventListener('click', loadData);
     document.getElementById('btn-copy-xpath').addEventListener('click', copyXPath);
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('menu-copy-xpath').addEventListener('click', () => {
         if (contextNode && contextNode._xpath) {
-            copyToClipboard(contextNode._xpath, '–„ copy XPath d?y d?!');
+            copyToClipboard(contextNode._xpath, '√ê√£ copy XPath d?y d?!');
         }
     });
 
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (contextNode) {
             const shortXpath = buildOptimizedRelativeXPath(contextNode);
             if (shortXpath) {
-                copyToClipboard(shortXpath, '–„ copy XPath ng?n!');
+                copyToClipboard(shortXpath, '√ê√£ copy XPath ng?n!');
             }
         }
     });
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (contextNode) {
             let csharpXPath = getCSharpXPath(contextNode);
             if (csharpXPath) {
-                copyToClipboard(csharpXPath, '–„ copy XPath C# (XmlNode)!');
+                copyToClipboard(csharpXPath, '√ê√£ copy XPath C# (XmlNode)!');
             }
         }
     });
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('menu-copy-xml').addEventListener('click', () => {
         if (contextNode) {
             const xmlStr = convertNodeToXmlDumpString(contextNode, 0, true);
-            copyToClipboard(xmlStr, '–„ copy to‡n b? m„ XML c?a Node n‡y!');
+            copyToClipboard(xmlStr, '√ê√£ copy to√†n b? m√£ XML c?a Node n√†y!');
         }
     });
 
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function sendCommandWithParams(command, bodyParams = {}) {
     try {
-        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> –ang th?c thi l?nh...';
+        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> √êang th?c thi l?nh...';
         elLoading.style.display = 'flex';
         
                 if (typeof currentPort !== 'undefined' && currentPort) {
@@ -403,7 +403,7 @@ async function sendCommandWithParams(command, bodyParams = {}) {
                 minitouchWs.send(JSON.stringify({ operation: 'u', index: 0 }));
                 minitouchWs.send(JSON.stringify({ operation: 'c' }));
                 
-                elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> –„ tap (minitouch)...';
+                elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> √ê√£ tap (minitouch)...';
                 setTimeout(() => loadData(), 200);
                 return;
             }
@@ -489,7 +489,7 @@ async function sendCommand(command) {
             // Evaluates as XPath or function
             if (!window.xmlDoc) return;
             
-            // HACK: Chuy?n d?i d?nh d?ng C# v? d?ng n?i b? c?a JS (DOMParser d˘ng tÍn class l‡m tag name)
+            // HACK: Chuy?n d?i d?nh d?ng C# v? d?ng n?i b? c?a JS (DOMParser d√πng t√™n class l√†m tag name)
             let finalQuery = query;
             
             // 1. node[@class='X' and Y] -> X[Y]
@@ -498,7 +498,7 @@ async function sendCommand(command) {
             // 2. node[@class='X'] -> X
             finalQuery = finalQuery.replace(/node\[@class=['"]([^'"]+)['"]\]/g, "$1");
             
-            // 3. Nh?ng ch? cÚn l?i ch?a "node" (vÌ d?: //node[@id="..."] ho?c //node) thÏ d?i th‡nh "*" (Match all elements)
+            // 3. Nh?ng ch? c√≤n l?i ch?a "node" (v√≠ d?: //node[@id="..."] ho?c //node) th√¨ d?i th√†nh "*" (Match all elements)
             finalQuery = finalQuery.replace(/(^|\/|\(|\[)node(?=\[|\/|$|\)|\])/g, "$1*");
             
             try {
@@ -554,7 +554,7 @@ async function sendCommand(command) {
         }
 
         if (_xpathSearchResults.length === 0) {
-            showToast("KhÙng tÏm th?y k?t qu? n‡o!");
+            showToast("Kh√¥ng t√¨m th?y k?t qu? n√†o!");
             updateXPathSearchUI();
         } else {
             _xpathSearchIndex = 0;
@@ -635,7 +635,7 @@ async function sendCommand(command) {
             const xmlFile = document.getElementById('file-hierarchy').files[0];
             
             if (!imgFile || !xmlFile) {
-                showToast("Vui lÚng ch?n ?nh ch?p m‡n hÏnh v‡ file c?u tr˙c.");
+                showToast("Vui l√≤ng ch?n ?nh ch?p m√†n h√¨nh v√† file c?u tr√∫c.");
                 return;
             }
             
@@ -693,7 +693,7 @@ async function sendCommand(command) {
             _xpathSearchIndex = -1;
             
             if (!window.csharpXmlDoc) {
-                statusSpan.textContent = "D? li?u c?u tr˙c chua s?n s‡ng.";
+                statusSpan.textContent = "D? li?u c?u tr√∫c chua s?n s√†ng.";
                 statusSpan.style.color = "var(--accent-red)";
                 return;
             }
@@ -708,7 +708,7 @@ async function sendCommand(command) {
                               result.resultType === XPathResult.NUMBER_TYPE ? result.numberValue : 
                               result.booleanValue;
                               
-                    statusSpan.textContent = 'K?t qu? vÙ hu?ng: ' + val;
+                    statusSpan.textContent = 'K?t qu? v√¥ hu?ng: ' + val;
                     statusSpan.style.color = "var(--accent-green)";
                     resultsContainer.style.display = 'none';
                     return;
@@ -730,11 +730,11 @@ async function sendCommand(command) {
                 }
                 
                 if (_xpathSearchResults.length === 0) {
-                    statusSpan.textContent = "KhÙng tÏm th?y k?t qu? n‡o!";
+                    statusSpan.textContent = "Kh√¥ng t√¨m th?y k?t qu? n√†o!";
                     statusSpan.style.color = "var(--accent-red)";
                     resultsContainer.style.display = 'none';
                 } else {
-                    statusSpan.textContent = `TÏm th?y ${_xpathSearchResults.length} ph?n t?.`;
+                    statusSpan.textContent = `T√¨m th?y ${_xpathSearchResults.length} ph?n t?.`;
                     statusSpan.style.color = "var(--accent-green)";
                     resultsContainer.style.display = 'block';
                     
@@ -747,7 +747,7 @@ async function sendCommand(command) {
                         if (props.text) detailHtml += `<div class="res-badge text-badge"><strong>text</strong>${props.text}</div>`;
                         if (props['content-desc']) detailHtml += `<div class="res-badge desc-badge"><strong>desc</strong>${props['content-desc']}</div>`;
                         
-                        if(!detailHtml) detailHtml = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">KhÙng cÛ id, text, desc</span>`;
+                        if(!detailHtml) detailHtml = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Kh√¥ng c√≥ id, text, desc</span>`;
 
                         const elItem = document.createElement('div');
                         elItem.className = 'csharp-result-item';
@@ -852,7 +852,7 @@ async function handleOfflineUpload(imgFile, xmlFile) {
     elOverlay.innerHTML = '';
     elTree.innerHTML = '';
     selectNode(null);
-    elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">–ang x? l˝ file ngo?i tuy?n...</div>';
+    elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">√êang x? l√Ω file ngo?i tuy?n...</div>';
     
     try {
         // 1. Read Image
@@ -1103,12 +1103,42 @@ async function loadData() {
 
     try {
         // Reset loading text
-        elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">–ang l?y c?u tr˙c giao di?n...</div>';
+        elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">√êang l?y c?u tr√∫c giao di?n...</div>';
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
         let imgUrl, imgUrlFallback, fetchHier, fetchScreen;
         
+        if (window.isOffline) {
+            clearTimeout(timeoutId);
+            const offlineImg = sessionStorage.getItem('offline_image');
+            const offlineXml = sessionStorage.getItem('offline_xml');
+            
+            if (offlineImg) {
+                await loadImage(offlineImg);
+            }
+            if (offlineXml) {
+                const textData = offlineXml;
+                if (textData.trim().startsWith('<')) {
+                    let parsed = parseXMLToJSON(textData);
+                    hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+                } else {
+                    let parsed = JSON.parse(textData);
+                    if (parsed.jsonrpc && typeof parsed.result === 'string' && parsed.result.trim().startsWith('<')) {
+                        let xmlParsed = parseXMLToJSON(parsed.result);
+                        hierarchyData = xmlParsed.hierarchy ? xmlParsed.hierarchy : xmlParsed;
+                    } else {
+                        hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+                    }
+                }
+                
+                calculateScale();
+                prepareHierarchyData(hierarchyData);
+            }
+            elLoading.style.display = 'none';
+            return;
+        }
+
         if (typeof currentPort !== 'undefined' && currentPort) {
             if (!isMinicapConnected && !minicapWs) {
                 startLiveStream(currentPort);
@@ -1138,17 +1168,17 @@ async function loadData() {
             const screenStatus = await screenResponse.json();
             const statusEl = document.getElementById('device-status-text');
             if (screenStatus.is_on) {
-                statusEl.textContent = 'M‡n hÏnh b?t';
+                statusEl.textContent = 'M√†n h√¨nh b?t';
                 statusEl.classList.remove('off');
             } else {
-                statusEl.textContent = 'M‡n hÏnh t?t';
+                statusEl.textContent = 'M√†n h√¨nh t?t';
                 statusEl.classList.add('off');
             }
         }
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) throw new Error('L?i l?y file c?u tr˙c. Tr?ng th·i: ' + response.status);
+        if (!response.ok) throw new Error('L?i l?y file c?u tr√∫c. Tr?ng th√°i: ' + response.status);
         const textData = await response.text();
         if (textData.trim().startsWith('<')) {
             let parsed = parseXMLToJSON(textData);
@@ -1433,7 +1463,7 @@ function showTooltip(node, id) {
     const props = node.properties || {};
     const nodeClass = props.class || node.name || node.key || 'Node';
     const rect = getRect(node);
-    const boundsStr = rect ? `${rect.width}◊${rect.height}` : '';
+    const boundsStr = rect ? `${rect.width}√ó${rect.height}` : '';
     
     document.getElementById('tt-class').textContent = nodeClass;
     document.getElementById('tt-bounds').textContent = boundsStr;
@@ -1712,7 +1742,7 @@ function buildOptimizedRelativeXPath(node) {
 function getCSharpXPath(node) {
     if (!node) return '';
     let rawPath = buildOptimizedRelativeXPath(node);
-    // Split b?ng '/' nhung B? QUA nh?ng d?u '/' n?m trong ngo?c kÈp (vd: android:id/content)
+    // Split b?ng '/' nhung B? QUA nh?ng d?u '/' n?m trong ngo?c k√©p (vd: android:id/content)
     let parts = rawPath.split(/\/(?=(?:(?:[^"]*"){2})*[^"]*$)/).filter(Boolean);
     
     // If it is a long path without any unique attribute anchor, truncate it to last 3 nodes
@@ -1763,9 +1793,9 @@ window.currentXPathStrategy = 'auto';
 function formatXPathString(xpath) {
     if (!xpath) return xpath;
     if (window.xpathFormatMode === 'standard') return xpath;
-    // –?ng b? ho‡n to‡n v?i logic Regex c?a C# backend
-    // (?<=\/|^) b?t phÌa tru?c l‡ / ho?c b?t d?u chu?i
-    // ([a-zA-Z][a-zA-Z0-9\.]+) b?t tÍn class (vd: android.widget.Button)
+    // √ê?ng b? ho√†n to√†n v?i logic Regex c?a C# backend
+    // (?<=\/|^) b?t ph√≠a tru?c l√† / ho?c b?t d?u chu?i
+    // ([a-zA-Z][a-zA-Z0-9\.]+) b?t t√™n class (vd: android.widget.Button)
     return xpath.replace(/(?<=\/|^)([a-zA-Z][a-zA-Z0-9\.]+)/g, (match) => {
         if (match === 'node' || match === 'hierarchy') return match;
         return `node[@class='${match}']`;
@@ -1926,7 +1956,7 @@ function updateXPath(node) {
     
     elXpathValue.value = finalXPath;
     
-    // T?o hi?u ?ng flash v‡ t? d?ng focus bÙi den d? copy
+    // T?o hi?u ?ng flash v√† t? d?ng focus b√¥i den d? copy
     elXpathValue.classList.remove('flash-highlight');
     void elXpathValue.offsetWidth; // force reflow d? reset animation
     elXpathValue.classList.add('flash-highlight');
@@ -2116,20 +2146,20 @@ function extractDynamicList(targetNode) {
     let nodeInfo = (targetNode.properties?.class || 'node') + ' ' + (targetNode.properties?.['resource-id'] || '');
     document.getElementById('dynamic-list-node-info').textContent = nodeInfo;
 
-    // TÏm parent l‡ danh s·ch
+    // T√¨m parent l√† danh s√°ch
     let parent = targetNode;
     while(parent && parent.properties?.class !== 'androidx.recyclerview.widget.RecyclerView' && parent.properties?.class !== 'android.widget.ListView' && parent.properties?.class !== 'android.widget.ScrollView') {
         parent = parent.parent;
     }
     
     if (!parent) {
-        parent = targetNode; // KhÙng th?y thÏ l?y chÌnh nÛ
+        parent = targetNode; // Kh√¥ng th?y th√¨ l?y ch√≠nh n√≥
     }
 
     let results = [];
     let seenVals = new Set();
     
-    // –? quy l?y data to‡n di?n
+    // √ê? quy l?y data to√†n di?n
     function walkAndExtract(n) {
         if (!n || !n.properties) return;
         const text = n.properties.text;
@@ -2139,7 +2169,7 @@ function extractDynamicList(targetNode) {
         const bounds = n.properties.bounds;
         
         let val = text || desc;
-        // B?t c·c node cÛ text/desc ho?c cÛ resource-id
+        // B?t c√°c node c√≥ text/desc ho?c c√≥ resource-id
         if ((val && val.trim() !== '') || (id && id.trim() !== '')) {
             let uniqueKey = `${val}-${id}-${cls}`;
             if (!seenVals.has(uniqueKey)) {
@@ -2165,7 +2195,7 @@ function extractDynamicList(targetNode) {
         walkAndExtract(parent);
     }
     
-    // T?o m?ng XPath –? Xu?t
+    // T?o m?ng XPath √ê? Xu?t
     const xpathContainer = document.getElementById('dynamic-list-xpath-suggestions');
     if (xpathContainer) {
         xpathContainer.innerHTML = '';
@@ -2199,39 +2229,39 @@ function extractDynamicList(targetNode) {
             
             let xpaths = [];
             
-            // 1. Chi ti?t nh?t (Cha + Con + –i?u ki?n)
+            // 1. Chi ti?t nh?t (Cha + Con + √êi?u ki?n)
             let rawXPath1 = `//${parentClass}//${childClass}${conditionStr}`;
             if (parentClass === childClass) rawXPath1 = `//${parentClass}${conditionStr}`;
-            xpaths.push({ label: 'Chi ti?t nh?t (KhuyÍn d˘ng)', value: rawXPath1 });
+            xpaths.push({ label: 'Chi ti?t nh?t (Khuy√™n d√πng)', value: rawXPath1 });
             
-            // 2. R˙t g?n (Cha + Con)
+            // 2. R√∫t g?n (Cha + Con)
             let rawXPath2 = `//${parentClass}//${childClass}`;
             if (parentClass === childClass) rawXPath2 = `//${parentClass}`;
-            if (rawXPath2 !== rawXPath1) xpaths.push({ label: 'R˙t g?n (Theo c?u tr˙c)', value: rawXPath2 });
+            if (rawXPath2 !== rawXPath1) xpaths.push({ label: 'R√∫t g?n (Theo c?u tr√∫c)', value: rawXPath2 });
             
             // 3. Theo ID c?a Con
             if (hasId) {
                 let xpIdChild = `//${parentClass}//${childClass}[@resource-id='${sampleNode.properties['resource-id']}']`;
                 if (parentClass === childClass) xpIdChild = `//${parentClass}[@resource-id='${sampleNode.properties['resource-id']}']`;
-                xpaths.push({ label: 'D?a trÍn ID c?a Item', value: xpIdChild });
+                xpaths.push({ label: 'D?a tr√™n ID c?a Item', value: xpIdChild });
             }
             
             // 4. Theo ID c?a Cha
             if (parent.properties?.['resource-id']) {
                 let parentId = parent.properties['resource-id'];
                 let xpIdParent = `//*[@resource-id='${parentId}']//${childClass}${conditionStr}`;
-                xpaths.push({ label: 'D?a trÍn ID c?a List', value: xpIdParent });
+                xpaths.push({ label: 'D?a tr√™n ID c?a List', value: xpIdParent });
             }
             
-            // 5. –?c l?p (Ch? d?a v‡o con)
+            // 5. √ê?c l?p (Ch? d?a v√†o con)
             let rawXPath5 = `//${childClass}${conditionStr}`;
             if (rawXPath5 !== rawXPath1) xpaths.push({ label: 'Truy v?n d?c l?p (B? qua Cha)', value: rawXPath5 });
 
-            // 6. LiÍn k?t tr?c ti?p (Direct child)
+            // 6. Li√™n k?t tr?c ti?p (Direct child)
             let rawXPath6 = `//${parentClass}/${childClass}${conditionStr}`;
             if (parentClass !== childClass && rawXPath6 !== rawXPath1) xpaths.push({ label: 'Tr?c ti?p (Direct Child)', value: rawXPath6 });
 
-            // 7. C˙ ph·p ng?n g?n d˘ng != '' (Theo yÍu c?u User)
+            // 7. C√∫ ph√°p ng?n g?n d√πng != '' (Theo y√™u c?u User)
             let simpleTextCond = [];
             if (hasDesc) simpleTextCond.push("@content-desc!=''");
             if (hasText) simpleTextCond.push("@text!=''");
@@ -2240,14 +2270,14 @@ function extractDynamicList(targetNode) {
                 let condStr = `(${simpleTextCond.join(' or ')})`;
                 
                 let rawXPath7 = `//${childClass}[${condStr}]`;
-                xpaths.push({ label: 'C˙ ph·p d?c l?p (!= \'\')', value: rawXPath7 });
+                xpaths.push({ label: 'C√∫ ph√°p d?c l?p (!= \'\')', value: rawXPath7 });
                 
                 let rawXPath8 = `//${parentClass}//${childClass}[${condStr}]`;
                 if (parentClass === childClass) rawXPath8 = `//${parentClass}[${condStr}]`;
                 xpaths.push({ label: 'Chi ti?t + Ng?n g?n (!= \'\')', value: rawXPath8 });
             }
             
-            // L?c tr˘ng theo value
+            // L?c tr√πng theo value
             let uniqueValues = new Set();
             let finalXpaths = [];
             for (let item of xpaths) {
@@ -2276,13 +2306,13 @@ function extractDynamicList(targetNode) {
                         <span style="color: var(--accent-green); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">${xpObj.label}</span>
                         <span style="color: var(--text-light); font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all;">${formattedXp}</span>
                     </div>
-                    <button class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-blue); cursor: pointer; padding: 6px 12px; border-radius: 6px; flex-shrink: 0; font-size: 12px; transition: 0.2s; font-weight: 600;" onmouseover="this.style.background='rgba(52,152,219,0.2)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--accent-blue)';" onclick="copyToClipboard('${formattedXp.replace(/'/g, "\\'")}', '–„ copy XPath!')"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-blue); cursor: pointer; padding: 6px 12px; border-radius: 6px; flex-shrink: 0; font-size: 12px; transition: 0.2s; font-weight: 600;" onmouseover="this.style.background='rgba(52,152,219,0.2)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--accent-blue)';" onclick="copyToClipboard('${formattedXp.replace(/'/g, "\\'")}', '√ê√£ copy XPath!')"><i class="fa-regular fa-copy"></i> Copy</button>
                 `;
                 xpathContainer.appendChild(el);
             });
             
         } else {
-            xpathContainer.innerHTML = '<span style="color: var(--accent-red); font-size: 12px;">KhÙng t?o du?c XPath do khÙng cÛ data.</span>';
+            xpathContainer.innerHTML = '<span style="color: var(--accent-red); font-size: 12px;">Kh√¥ng t?o du?c XPath do kh√¥ng c√≥ data.</span>';
         }
     }
 
@@ -2294,7 +2324,7 @@ function extractDynamicList(targetNode) {
 
     // Render List UI
     if (results.length === 0) {
-        listContainer.innerHTML = '<div style="color: var(--accent-red); padding: 10px;">KhÙng tÏm th?y node n‡o cÛ Text, Content-desc hay Resource-ID!</div>';
+        listContainer.innerHTML = '<div style="color: var(--accent-red); padding: 10px;">Kh√¥ng t√¨m th?y node n√†o c√≥ Text, Content-desc hay Resource-ID!</div>';
     } else {
         results.forEach((item, index) => {
             const el = document.createElement('div');
@@ -2324,7 +2354,7 @@ function extractDynamicList(targetNode) {
                         <span style="color: var(--text-muted); font-family: monospace; font-size: 11px; background: rgba(255,255,255,0.1); padding: 3px 6px; border-radius: 4px; margin-top: 1px; font-weight: bold;">#${index + 1}</span>
                         <span style="line-height: 1.4;">${titleVal}</span>
                     </div>
-                    <button class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--accent-blue); padding: 5px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; margin-left: 12px; transition: 0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.1)'" onmouseout="this.style.background='transparent'" onclick="copyToClipboard('${copyVal.replace(/'/g, "\\'")}', '–„ copy!')"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--accent-blue); padding: 5px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; margin-left: 12px; transition: 0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.1)'" onmouseout="this.style.background='transparent'" onclick="copyToClipboard('${copyVal.replace(/'/g, "\\'")}', '√ê√£ copy!')"><i class="fa-regular fa-copy"></i> Copy</button>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
                     ${badges}
@@ -2440,6 +2470,8 @@ function setupTouchpad() {
         setupTouchpad();
     }
 */
+
+
 
 
 

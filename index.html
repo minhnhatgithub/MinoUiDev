@@ -77,7 +77,8 @@
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="search-device" placeholder="Search...">
         </div>
-        <button id="btn-refresh-devices" class="btn btn-action" style="padding: 8px 12px; cursor: pointer; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;" title="Làm mới danh sách"><i class="fa-solid fa-rotate-right"></i></button>
+        <button id="btn-refresh-devices" class="btn btn-action" style="padding: 8px 12px; cursor: pointer; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;" title="Làm mới"><i class="fa-solid fa-rotate-right"></i></button>
+        <button id="btn-offline-inspector" class="btn btn-action" style="padding: 8px 12px; cursor: pointer; background: #fd5d93; border: none; color: white; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 5px;" title="Offline Inspector"><i class="fa-solid fa-file-import"></i> Offline</button>
     </div>
 </div>
 <div class="table-responsive">
@@ -133,12 +134,34 @@
         </div>
     </div>
 
+        <!-- Modal for Offline Inspector -->
+    <div id="offline-modal" class="modal">
+        <div class="modal-content card" style="max-width: 500px;">
+            <span class="close-btn offline-close">&times;</span>
+            <h3 style="margin-bottom: 20px;">Offline Inspector</h3>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ảnh Screenshot (Image)</label>
+                    <input type="file" id="offline-image" accept="image/*" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-main);">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Cấu trúc giao diện (XML/TXT)</label>
+                    <input type="file" id="offline-xml" accept=".xml,.txt" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-main);">
+                </div>
+                <button id="btn-start-offline" class="btn" style="padding: 10px; background: #00bf9a; border: none; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px;">Mở Inspector</button>
+            </div>
+        </div>
+    </div>
+
     <script>window.gtranslateSettings = {"default_language":"vi","wrapper_selector":".gtranslate_wrapper"}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/dropdown.js" defer></script>
     <script src="script.js?v=9"></script>
 </body>
 
 </html>
+
+
+
 
 
 
