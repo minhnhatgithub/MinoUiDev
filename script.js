@@ -277,14 +277,23 @@ async function connectToAtx(port) {
         }
         
         const tr = document.createElement('tr');
+        const rowsCount = devicesList.querySelectorAll('tr').length;
+        
+        const serial = info.serial || ('ATX-' + port);
+        const deviceName = info.brand ? (info.brand.toUpperCase() + ' ' + info.model) : 'ATX Device';
+        const model = info.model || 'Unknown';
+        const display = info.display ? `x${info.display.height}` : '';
+        const battery = info.battery ? `%` : '';
+
         tr.innerHTML = `
-            <td><i class="fa-brands fa-android" style="color: #00bf9a;"></i></td>
-            <td style="font-weight: 500;">ATX Agent (Direct)</td>
-            <td>127.0.0.1:${port}</td>
-            <td><span class="status-badge status-online">online</span></td>
-            <td>${info.Display ? info.Display.Width + 'x' + info.Display.Height : 'Unknown'}</td>
+            <td><input type="checkbox"></td>
+            <td>${rowsCount + 1}</td>
+            <td style="color: #fff;"><i class="fa-brands fa-android" style="color: #00bf9a; margin-right: 8px;"></i>${serial}<br><small style="color: var(--text-muted)">127.0.0.1:${port}</small></td>
+            <td>${deviceName}<br><small style="color: var(--text-muted)">${display} ${battery ? '| PIN: ' + battery : ''}</small></td>
+            <td>${model}</td>
+            <td><span style="color: #00bf9a;"><i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 5px;"></i>online</span></td>
             <td>
-                <div class="action-buttons">
+                <div class="action-buttons" style="justify-content: flex-end;">
                     <button class="btn-action btn-edit" onclick="window.open('inspector.html?port=${port}', '_blank')">VIEW XPATH</button>
                 </div>
             </td>
@@ -308,7 +317,7 @@ async function checkPort(port) {
         clearTimeout(timeoutId);
         if (response.ok) {
             const data = await response.json();
-            if (data.Display) return true;
+            if (data.display || data.Display) return true;
         }
     } catch (e) {
     }
@@ -335,3 +344,7 @@ async function scanAtxPorts() {
     }
     return null;
 }
+
+
+
+
