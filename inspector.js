@@ -1,4 +1,4 @@
-﻿const BASE_URL = 'http://127.0.0.1:20242';
+const BASE_URL = 'http://127.0.0.1:20242';
 
 // State
 let currentSerial = null;
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPort = urlParams.get('port');
 
     if (!currentSerial && !currentPort) {
-        showToast('Không có số serial của thiết bị!');
+        showToast('Kh�ng c� s? serial c?a thi?t b?!');
         return;
     }
 
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-copy-xpath').addEventListener('click', copyXPath);
     elXpathValue.addEventListener('click', copyXPath);
     elXpathValue.style.cursor = 'pointer';
-    elXpathValue.title = 'Nhấp để copy XPath';
+    elXpathValue.title = 'Nh?p d? copy XPath';
     
     let currentXPathStrategy = 'auto';
     window.xmlDoc = null;
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contextMenu.style.left = left + 'px';
             contextMenu.style.top = top + 'px';
         } catch (err) {
-            showToast("Lỗi menu ngữ cảnh: " + err.message);
+            showToast("L?i menu ng? c?nh: " + err.message);
         }
     };
 
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('menu-copy-xpath').addEventListener('click', () => {
         if (contextNode && contextNode._xpath) {
-            copyToClipboard(contextNode._xpath, 'Đã copy XPath đầy đủ!');
+            copyToClipboard(contextNode._xpath, '�� copy XPath d?y d?!');
         }
     });
 
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (contextNode) {
             const shortXpath = buildOptimizedRelativeXPath(contextNode);
             if (shortXpath) {
-                copyToClipboard(shortXpath, 'Đã copy XPath ngắn!');
+                copyToClipboard(shortXpath, '�� copy XPath ng?n!');
             }
         }
     });
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (contextNode) {
             let csharpXPath = getCSharpXPath(contextNode);
             if (csharpXPath) {
-                copyToClipboard(csharpXPath, 'Đã copy XPath C# (XmlNode)!');
+                copyToClipboard(csharpXPath, '�� copy XPath C# (XmlNode)!');
             }
         }
     });
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('menu-copy-xml').addEventListener('click', () => {
         if (contextNode) {
             const xmlStr = convertNodeToXmlDumpString(contextNode, 0, true);
-            copyToClipboard(xmlStr, 'Đã copy toàn bộ mã XML của Node này!');
+            copyToClipboard(xmlStr, '�� copy to�n b? m� XML c?a Node n�y!');
         }
     });
 
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function sendCommandWithParams(command, bodyParams = {}) {
     try {
-        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang thực thi lệnh...';
+        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> �ang th?c thi l?nh...';
         elLoading.style.display = 'flex';
         
                 if (typeof currentPort !== 'undefined' && currentPort) {
@@ -403,7 +403,7 @@ async function sendCommandWithParams(command, bodyParams = {}) {
                 minitouchWs.send(JSON.stringify({ operation: 'u', index: 0 }));
                 minitouchWs.send(JSON.stringify({ operation: 'c' }));
                 
-                elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đã tap (minitouch)...';
+                elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> �� tap (minitouch)...';
                 setTimeout(() => loadData(), 200);
                 return;
             }
@@ -432,12 +432,12 @@ async function sendCommandWithParams(command, bodyParams = {}) {
         }
         
         // Reload data after a brief delay to allow device to render
-        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Thiết bị đang phản hồi...';
+        elLoading.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Thi?t b? dang ph?n h?i...';
         setTimeout(() => loadData(), 500);
     } catch (err) {
         console.error(err);
         elLoading.style.display = 'none';
-        showToast('Lỗi khi gửi lệnh: ' + err.message);
+        showToast('L?i khi g?i l?nh: ' + err.message);
     }
 }
 
@@ -489,7 +489,7 @@ async function sendCommand(command) {
             // Evaluates as XPath or function
             if (!window.xmlDoc) return;
             
-            // HACK: Chuyển đổi định dạng C# về dạng nội bộ của JS (DOMParser dùng tên class làm tag name)
+            // HACK: Chuy?n d?i d?nh d?ng C# v? d?ng n?i b? c?a JS (DOMParser d�ng t�n class l�m tag name)
             let finalQuery = query;
             
             // 1. node[@class='X' and Y] -> X[Y]
@@ -498,7 +498,7 @@ async function sendCommand(command) {
             // 2. node[@class='X'] -> X
             finalQuery = finalQuery.replace(/node\[@class=['"]([^'"]+)['"]\]/g, "$1");
             
-            // 3. Những chỗ còn lại chứa "node" (ví dụ: //node[@id="..."] hoặc //node) thì đổi thành "*" (Match all elements)
+            // 3. Nh?ng ch? c�n l?i ch?a "node" (v� d?: //node[@id="..."] ho?c //node) th� d?i th�nh "*" (Match all elements)
             finalQuery = finalQuery.replace(/(^|\/|\(|\[)node(?=\[|\/|$|\)|\])/g, "$1*");
             
             try {
@@ -512,7 +512,7 @@ async function sendCommand(command) {
                               result.resultType === XPathResult.NUMBER_TYPE ? result.numberValue : 
                               result.booleanValue;
                               
-                    showToast('Kết quả: ' + val);
+                    showToast('K?t qu?: ' + val);
                     updateXPathSearchUI();
                     return;
                 }
@@ -554,7 +554,7 @@ async function sendCommand(command) {
         }
 
         if (_xpathSearchResults.length === 0) {
-            showToast("Không tìm thấy kết quả nào!");
+            showToast("Kh�ng t�m th?y k?t qu? n�o!");
             updateXPathSearchUI();
         } else {
             _xpathSearchIndex = 0;
@@ -635,7 +635,7 @@ async function sendCommand(command) {
             const xmlFile = document.getElementById('file-hierarchy').files[0];
             
             if (!imgFile || !xmlFile) {
-                showToast("Vui lòng chọn ảnh chụp màn hình và file cấu trúc.");
+                showToast("Vui l�ng ch?n ?nh ch?p m�n h�nh v� file c?u tr�c.");
                 return;
             }
             
@@ -693,7 +693,7 @@ async function sendCommand(command) {
             _xpathSearchIndex = -1;
             
             if (!window.csharpXmlDoc) {
-                statusSpan.textContent = "Dữ liệu cấu trúc chưa sẵn sàng.";
+                statusSpan.textContent = "D? li?u c?u tr�c chua s?n s�ng.";
                 statusSpan.style.color = "var(--accent-red)";
                 return;
             }
@@ -708,7 +708,7 @@ async function sendCommand(command) {
                               result.resultType === XPathResult.NUMBER_TYPE ? result.numberValue : 
                               result.booleanValue;
                               
-                    statusSpan.textContent = 'Kết quả vô hướng: ' + val;
+                    statusSpan.textContent = 'K?t qu? v� hu?ng: ' + val;
                     statusSpan.style.color = "var(--accent-green)";
                     resultsContainer.style.display = 'none';
                     return;
@@ -730,11 +730,11 @@ async function sendCommand(command) {
                 }
                 
                 if (_xpathSearchResults.length === 0) {
-                    statusSpan.textContent = "Không tìm thấy kết quả nào!";
+                    statusSpan.textContent = "Kh�ng t�m th?y k?t qu? n�o!";
                     statusSpan.style.color = "var(--accent-red)";
                     resultsContainer.style.display = 'none';
                 } else {
-                    statusSpan.textContent = `Tìm thấy ${_xpathSearchResults.length} phần tử.`;
+                    statusSpan.textContent = `T�m th?y ${_xpathSearchResults.length} ph?n t?.`;
                     statusSpan.style.color = "var(--accent-green)";
                     resultsContainer.style.display = 'block';
                     
@@ -747,7 +747,7 @@ async function sendCommand(command) {
                         if (props.text) detailHtml += `<div class="res-badge text-badge"><strong>text</strong>${props.text}</div>`;
                         if (props['content-desc']) detailHtml += `<div class="res-badge desc-badge"><strong>desc</strong>${props['content-desc']}</div>`;
                         
-                        if(!detailHtml) detailHtml = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Không có id, text, desc</span>`;
+                        if(!detailHtml) detailHtml = `<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Kh�ng c� id, text, desc</span>`;
 
                         const elItem = document.createElement('div');
                         elItem.className = 'csharp-result-item';
@@ -776,7 +776,7 @@ async function sendCommand(command) {
                     });
                 }
             } catch (err) {
-                statusSpan.textContent = "Lỗi: " + err.message;
+                statusSpan.textContent = "L?i: " + err.message;
                 statusSpan.style.color = "var(--accent-red)";
                 resultsContainer.style.display = 'none';
             }
@@ -852,7 +852,7 @@ async function handleOfflineUpload(imgFile, xmlFile) {
     elOverlay.innerHTML = '';
     elTree.innerHTML = '';
     selectNode(null);
-    elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Đang xử lý file ngoại tuyến...</div>';
+    elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">�ang x? l� file ngo?i tuy?n...</div>';
     
     try {
         // 1. Read Image
@@ -889,13 +889,13 @@ async function handleOfflineUpload(imgFile, xmlFile) {
         prepareHierarchyData(hierarchyData);
         
         // Disable live device actions
-        document.getElementById('device-serial').textContent = 'Chế độ ngoại tuyến';
-        document.getElementById('device-status-text').textContent = 'Ngoại tuyến';
+        document.getElementById('device-serial').textContent = 'Ch? d? ngo?i tuy?n';
+        document.getElementById('device-status-text').textContent = 'Ngo?i tuy?n';
         document.getElementById('device-status-text').className = 'device-status-text off';
         
     } catch (err) {
         console.error(err);
-        showToast('Lỗi khi tải file ngoại tuyến: ' + err.message);
+        showToast('L?i khi t?i file ngo?i tuy?n: ' + err.message);
     } finally {
         elLoading.style.display = 'none';
     }
@@ -937,10 +937,6 @@ function parseXMLToJSON(xmlStr) {
     }
     
     let root = xmlDoc.documentElement;
-    if (root.tagName === 'hierarchy' && root.children.length > 0) {
-        root = root.children[0];
-    }
-    
     return convertNode(root);
 }
 
@@ -970,7 +966,11 @@ function processNode(node, parentPath, indexStr, depth) {
     let nodeClass = node.name || node.key || (node.properties ? node.properties.class : 'unknown');
     if (!nodeClass) nodeClass = 'node';
     
-    node._xpath = parentPath + '/' + nodeClass + '[' + (node._index + 1) + ']';
+    if (nodeClass === 'hierarchy') {
+        node._xpath = '';
+    } else {
+        node._xpath = (parentPath === '' ? '//' : parentPath + '/') + nodeClass + '[' + (node._index + 1) + ']';
+    }
     
     if (node.children) {
         const classCounts = {};
@@ -1103,7 +1103,7 @@ async function loadData() {
 
     try {
         // Reset loading text
-        elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Đang lấy cấu trúc giao diện...</div>';
+        elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">�ang l?y c?u tr�c giao di?n...</div>';
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -1138,17 +1138,17 @@ async function loadData() {
             const screenStatus = await screenResponse.json();
             const statusEl = document.getElementById('device-status-text');
             if (screenStatus.is_on) {
-                statusEl.textContent = 'Màn hình bật';
+                statusEl.textContent = 'M�n h�nh b?t';
                 statusEl.classList.remove('off');
             } else {
-                statusEl.textContent = 'Màn hình tắt';
+                statusEl.textContent = 'M�n h�nh t?t';
                 statusEl.classList.add('off');
             }
         }
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) throw new Error('Lỗi lấy file cấu trúc. Trạng thái: ' + response.status);
+        if (!response.ok) throw new Error('L?i l?y file c?u tr�c. Tr?ng th�i: ' + response.status);
         const textData = await response.text();
         if (textData.trim().startsWith('<')) {
             let parsed = parseXMLToJSON(textData);
@@ -1177,8 +1177,8 @@ async function loadData() {
         elLoading.innerHTML = `
             <div style="color: #ff5252; text-align: center; max-width: 80%; padding: 20px; background: rgba(0,0,0,0.8); border-radius: 8px;">
                 <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px; margin-bottom: 10px;"></i>
-                <div style="margin-bottom: 15px;">Lỗi: ${err.message}</div>
-                <button onclick="loadData()" style="padding: 8px 16px; background: #1d8cf8; color: white; border: none; border-radius: 4px; cursor: pointer;">Thử lại</button>
+                <div style="margin-bottom: 15px;">L?i: ${err.message}</div>
+                <button onclick="loadData()" style="padding: 8px 16px; background: #1d8cf8; color: white; border: none; border-radius: 4px; cursor: pointer;">Th? l?i</button>
             </div>
         `;
     }
@@ -1433,7 +1433,7 @@ function showTooltip(node, id) {
     const props = node.properties || {};
     const nodeClass = props.class || node.name || node.key || 'Node';
     const rect = getRect(node);
-    const boundsStr = rect ? `${rect.width}×${rect.height}` : '';
+    const boundsStr = rect ? `${rect.width}�${rect.height}` : '';
     
     document.getElementById('tt-class').textContent = nodeClass;
     document.getElementById('tt-bounds').textContent = boundsStr;
@@ -1712,7 +1712,7 @@ function buildOptimizedRelativeXPath(node) {
 function getCSharpXPath(node) {
     if (!node) return '';
     let rawPath = buildOptimizedRelativeXPath(node);
-    // Split bằng '/' nhưng BỎ QUA những dấu '/' nằm trong ngoặc kép (vd: android:id/content)
+    // Split b?ng '/' nhung B? QUA nh?ng d?u '/' n?m trong ngo?c k�p (vd: android:id/content)
     let parts = rawPath.split(/\/(?=(?:(?:[^"]*"){2})*[^"]*$)/).filter(Boolean);
     
     // If it is a long path without any unique attribute anchor, truncate it to last 3 nodes
@@ -1763,9 +1763,9 @@ window.currentXPathStrategy = 'auto';
 function formatXPathString(xpath) {
     if (!xpath) return xpath;
     if (window.xpathFormatMode === 'standard') return xpath;
-    // Đồng bộ hoàn toàn với logic Regex của C# backend
-    // (?<=\/|^) bắt phía trước là / hoặc bắt đầu chuỗi
-    // ([a-zA-Z][a-zA-Z0-9\.]+) bắt tên class (vd: android.widget.Button)
+    // �?ng b? ho�n to�n v?i logic Regex c?a C# backend
+    // (?<=\/|^) b?t ph�a tru?c l� / ho?c b?t d?u chu?i
+    // ([a-zA-Z][a-zA-Z0-9\.]+) b?t t�n class (vd: android.widget.Button)
     return xpath.replace(/(?<=\/|^)([a-zA-Z][a-zA-Z0-9\.]+)/g, (match) => {
         if (match === 'node' || match === 'hierarchy') return match;
         return `node[@class='${match}']`;
@@ -1926,9 +1926,9 @@ function updateXPath(node) {
     
     elXpathValue.value = finalXPath;
     
-    // Tạo hiệu ứng flash và tự động focus bôi đen để copy
+    // T?o hi?u ?ng flash v� t? d?ng focus b�i den d? copy
     elXpathValue.classList.remove('flash-highlight');
-    void elXpathValue.offsetWidth; // force reflow để reset animation
+    void elXpathValue.offsetWidth; // force reflow d? reset animation
     elXpathValue.classList.add('flash-highlight');
     elXpathValue.select();
 
@@ -2116,20 +2116,20 @@ function extractDynamicList(targetNode) {
     let nodeInfo = (targetNode.properties?.class || 'node') + ' ' + (targetNode.properties?.['resource-id'] || '');
     document.getElementById('dynamic-list-node-info').textContent = nodeInfo;
 
-    // Tìm parent là danh sách
+    // T�m parent l� danh s�ch
     let parent = targetNode;
     while(parent && parent.properties?.class !== 'androidx.recyclerview.widget.RecyclerView' && parent.properties?.class !== 'android.widget.ListView' && parent.properties?.class !== 'android.widget.ScrollView') {
         parent = parent.parent;
     }
     
     if (!parent) {
-        parent = targetNode; // Không thấy thì lấy chính nó
+        parent = targetNode; // Kh�ng th?y th� l?y ch�nh n�
     }
 
     let results = [];
     let seenVals = new Set();
     
-    // Đệ quy lấy data toàn diện
+    // �? quy l?y data to�n di?n
     function walkAndExtract(n) {
         if (!n || !n.properties) return;
         const text = n.properties.text;
@@ -2139,7 +2139,7 @@ function extractDynamicList(targetNode) {
         const bounds = n.properties.bounds;
         
         let val = text || desc;
-        // Bắt các node có text/desc hoặc có resource-id
+        // B?t c�c node c� text/desc ho?c c� resource-id
         if ((val && val.trim() !== '') || (id && id.trim() !== '')) {
             let uniqueKey = `${val}-${id}-${cls}`;
             if (!seenVals.has(uniqueKey)) {
@@ -2165,7 +2165,7 @@ function extractDynamicList(targetNode) {
         walkAndExtract(parent);
     }
     
-    // Tạo mảng XPath Đề Xuất
+    // T?o m?ng XPath �? Xu?t
     const xpathContainer = document.getElementById('dynamic-list-xpath-suggestions');
     if (xpathContainer) {
         xpathContainer.innerHTML = '';
@@ -2199,39 +2199,39 @@ function extractDynamicList(targetNode) {
             
             let xpaths = [];
             
-            // 1. Chi tiết nhất (Cha + Con + Điều kiện)
+            // 1. Chi ti?t nh?t (Cha + Con + �i?u ki?n)
             let rawXPath1 = `//${parentClass}//${childClass}${conditionStr}`;
             if (parentClass === childClass) rawXPath1 = `//${parentClass}${conditionStr}`;
-            xpaths.push({ label: 'Chi tiết nhất (Khuyên dùng)', value: rawXPath1 });
+            xpaths.push({ label: 'Chi ti?t nh?t (Khuy�n d�ng)', value: rawXPath1 });
             
-            // 2. Rút gọn (Cha + Con)
+            // 2. R�t g?n (Cha + Con)
             let rawXPath2 = `//${parentClass}//${childClass}`;
             if (parentClass === childClass) rawXPath2 = `//${parentClass}`;
-            if (rawXPath2 !== rawXPath1) xpaths.push({ label: 'Rút gọn (Theo cấu trúc)', value: rawXPath2 });
+            if (rawXPath2 !== rawXPath1) xpaths.push({ label: 'R�t g?n (Theo c?u tr�c)', value: rawXPath2 });
             
-            // 3. Theo ID của Con
+            // 3. Theo ID c?a Con
             if (hasId) {
                 let xpIdChild = `//${parentClass}//${childClass}[@resource-id='${sampleNode.properties['resource-id']}']`;
                 if (parentClass === childClass) xpIdChild = `//${parentClass}[@resource-id='${sampleNode.properties['resource-id']}']`;
-                xpaths.push({ label: 'Dựa trên ID của Item', value: xpIdChild });
+                xpaths.push({ label: 'D?a tr�n ID c?a Item', value: xpIdChild });
             }
             
-            // 4. Theo ID của Cha
+            // 4. Theo ID c?a Cha
             if (parent.properties?.['resource-id']) {
                 let parentId = parent.properties['resource-id'];
                 let xpIdParent = `//*[@resource-id='${parentId}']//${childClass}${conditionStr}`;
-                xpaths.push({ label: 'Dựa trên ID của List', value: xpIdParent });
+                xpaths.push({ label: 'D?a tr�n ID c?a List', value: xpIdParent });
             }
             
-            // 5. Độc lập (Chỉ dựa vào con)
+            // 5. �?c l?p (Ch? d?a v�o con)
             let rawXPath5 = `//${childClass}${conditionStr}`;
-            if (rawXPath5 !== rawXPath1) xpaths.push({ label: 'Truy vấn độc lập (Bỏ qua Cha)', value: rawXPath5 });
+            if (rawXPath5 !== rawXPath1) xpaths.push({ label: 'Truy v?n d?c l?p (B? qua Cha)', value: rawXPath5 });
 
-            // 6. Liên kết trực tiếp (Direct child)
+            // 6. Li�n k?t tr?c ti?p (Direct child)
             let rawXPath6 = `//${parentClass}/${childClass}${conditionStr}`;
-            if (parentClass !== childClass && rawXPath6 !== rawXPath1) xpaths.push({ label: 'Trực tiếp (Direct Child)', value: rawXPath6 });
+            if (parentClass !== childClass && rawXPath6 !== rawXPath1) xpaths.push({ label: 'Tr?c ti?p (Direct Child)', value: rawXPath6 });
 
-            // 7. Cú pháp ngắn gọn dùng != '' (Theo yêu cầu User)
+            // 7. C� ph�p ng?n g?n d�ng != '' (Theo y�u c?u User)
             let simpleTextCond = [];
             if (hasDesc) simpleTextCond.push("@content-desc!=''");
             if (hasText) simpleTextCond.push("@text!=''");
@@ -2240,14 +2240,14 @@ function extractDynamicList(targetNode) {
                 let condStr = `(${simpleTextCond.join(' or ')})`;
                 
                 let rawXPath7 = `//${childClass}[${condStr}]`;
-                xpaths.push({ label: 'Cú pháp độc lập (!= \'\')', value: rawXPath7 });
+                xpaths.push({ label: 'C� ph�p d?c l?p (!= \'\')', value: rawXPath7 });
                 
                 let rawXPath8 = `//${parentClass}//${childClass}[${condStr}]`;
                 if (parentClass === childClass) rawXPath8 = `//${parentClass}[${condStr}]`;
-                xpaths.push({ label: 'Chi tiết + Ngắn gọn (!= \'\')', value: rawXPath8 });
+                xpaths.push({ label: 'Chi ti?t + Ng?n g?n (!= \'\')', value: rawXPath8 });
             }
             
-            // Lọc trùng theo value
+            // L?c tr�ng theo value
             let uniqueValues = new Set();
             let finalXpaths = [];
             for (let item of xpaths) {
@@ -2276,17 +2276,17 @@ function extractDynamicList(targetNode) {
                         <span style="color: var(--accent-green); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">${xpObj.label}</span>
                         <span style="color: var(--text-light); font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all;">${formattedXp}</span>
                     </div>
-                    <button class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-blue); cursor: pointer; padding: 6px 12px; border-radius: 6px; flex-shrink: 0; font-size: 12px; transition: 0.2s; font-weight: 600;" onmouseover="this.style.background='rgba(52,152,219,0.2)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--accent-blue)';" onclick="copyToClipboard('${formattedXp.replace(/'/g, "\\'")}', 'Đã copy XPath!')"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-blue); cursor: pointer; padding: 6px 12px; border-radius: 6px; flex-shrink: 0; font-size: 12px; transition: 0.2s; font-weight: 600;" onmouseover="this.style.background='rgba(52,152,219,0.2)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--accent-blue)';" onclick="copyToClipboard('${formattedXp.replace(/'/g, "\\'")}', '�� copy XPath!')"><i class="fa-regular fa-copy"></i> Copy</button>
                 `;
                 xpathContainer.appendChild(el);
             });
             
         } else {
-            xpathContainer.innerHTML = '<span style="color: var(--accent-red); font-size: 12px;">Không tạo được XPath do không có data.</span>';
+            xpathContainer.innerHTML = '<span style="color: var(--accent-red); font-size: 12px;">Kh�ng t?o du?c XPath do kh�ng c� data.</span>';
         }
     }
 
-    // Cập nhật số lượng items
+    // C?p nh?t s? lu?ng items
     const elCount = document.getElementById('dynamic-list-count');
     if (elCount) {
         elCount.textContent = results.length;
@@ -2294,7 +2294,7 @@ function extractDynamicList(targetNode) {
 
     // Render List UI
     if (results.length === 0) {
-        listContainer.innerHTML = '<div style="color: var(--accent-red); padding: 10px;">Không tìm thấy node nào có Text, Content-desc hay Resource-ID!</div>';
+        listContainer.innerHTML = '<div style="color: var(--accent-red); padding: 10px;">Kh�ng t�m th?y node n�o c� Text, Content-desc hay Resource-ID!</div>';
     } else {
         results.forEach((item, index) => {
             const el = document.createElement('div');
@@ -2324,7 +2324,7 @@ function extractDynamicList(targetNode) {
                         <span style="color: var(--text-muted); font-family: monospace; font-size: 11px; background: rgba(255,255,255,0.1); padding: 3px 6px; border-radius: 4px; margin-top: 1px; font-weight: bold;">#${index + 1}</span>
                         <span style="line-height: 1.4;">${titleVal}</span>
                     </div>
-                    <button class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--accent-blue); padding: 5px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; margin-left: 12px; transition: 0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.1)'" onmouseout="this.style.background='transparent'" onclick="copyToClipboard('${copyVal.replace(/'/g, "\\'")}', 'Đã copy!')"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button class="btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--accent-blue); padding: 5px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; margin-left: 12px; transition: 0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.1)'" onmouseout="this.style.background='transparent'" onclick="copyToClipboard('${copyVal.replace(/'/g, "\\'")}', '�� copy!')"><i class="fa-regular fa-copy"></i> Copy</button>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
                     ${badges}
@@ -2440,6 +2440,9 @@ function setupTouchpad() {
         setupTouchpad();
     }
 */
+
+
+
 
 
 
