@@ -57,24 +57,30 @@
 
                 <!-- Manager Phone Table -->
                 <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Manager Phone</h2>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                                                        <div class="search-box">
-                                <i class="fa-solid fa-plug"></i>
-                                <input type="number" id="atx-port" placeholder="Port (e.g. 51557)" style="width: 140px; background: transparent; border: none; color: var(--text-main); outline: none;">
-                            </div>
-                            <button id="btn-connect-atx" class="btn btn-action" style="padding: 5px 10px; cursor: pointer; background: #00bf9a; border: none; color: white; border-radius: 4px;" title="Kết nối ATX Agent"><i class="fa-solid fa-link"></i></button>
-                            <button id="btn-scan-atx" class="btn btn-action" style="padding: 5px 10px; cursor: pointer; background: #1d8cf8; border: none; color: white; border-radius: 4px; margin-right: 15px;" title="Quét cổng ATX Agent"><i class="fa-solid fa-satellite-dish"></i></button>
-                            <div class="search-box">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="search-device" placeholder="Search">
-                            </div>
-                            <button id="btn-refresh-devices" class="btn btn-action" style="padding: 5px 10px; cursor: pointer; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;" title="Làm mới danh sách"><i class="fa-solid fa-rotate-right"></i></button>
-                        </div>
-                    </div>
+                    <div class="table-header" style="flex-wrap: wrap; gap: 15px;">
+    <h2>Manager Phone</h2>
+    <div style="display: flex; gap: 10px; align-items: center; flex: 1; justify-content: flex-end; flex-wrap: wrap;">
+        <!-- ATX Connect Group -->
+        <div style="display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; gap: 4px;">
+            <div class="search-box" style="margin: 0; border: none; background: transparent; box-shadow: none; padding: 0 10px;">
+                <i class="fa-solid fa-plug" style="color: #1d8cf8;"></i>
+                <input type="number" id="atx-port" placeholder="ATX Port" style="width: 100px; background: transparent; border: none; color: var(--text-main); outline: none; margin-left: 8px;">
+            </div>
+            <button id="btn-connect-atx" class="btn" style="padding: 6px 12px; cursor: pointer; background: #00bf9a; border: none; color: white; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 5px;" title="Kết nối ATX Agent"><i class="fa-solid fa-link"></i> Nối</button>
+            <button id="btn-scan-atx" class="btn" style="padding: 6px 12px; cursor: pointer; background: #1d8cf8; border: none; color: white; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 5px;" title="Quét cổng ATX Agent"><i class="fa-solid fa-satellite-dish"></i> Quét</button>
+        </div>
 
-                    <div class="table-responsive">
+        <div style="width: 1px; height: 30px; background: var(--border-color); margin: 0 5px; display: block;"></div>
+
+        <!-- Search Group -->
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-device" placeholder="Search...">
+        </div>
+        <button id="btn-refresh-devices" class="btn btn-action" style="padding: 8px 12px; cursor: pointer; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;" title="Làm mới danh sách"><i class="fa-solid fa-rotate-right"></i></button>
+    </div>
+</div>
+<div class="table-responsive">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -133,5 +139,6 @@
 </body>
 
 </html>
+
 
 
