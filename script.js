@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showCustomAlert('Tìm thấy ATX Agent tại cổng: ' + foundPort, true);
                     await connectToAtx(foundPort);
                 } else {
-                    showCustomAlert('Không tìm thấy ATX Agent nào trong dải cổng 1000-9000.', false);
+                    showCustomAlert('Không tìm thấy ATX Agent nào trong dải cổng 1000-65000.', false);
                 }
             } catch (err) {
                 console.error(err);
@@ -345,22 +345,26 @@ async function checkPort(port) {
 }
 
 async function scanAtxPorts() {
+    const commonPorts = [51557, 51558, 51559, 7912];
+    for (let port of commonPorts) {
+        if (await checkPort(port)) return port;
+    }
+    
     const startPort = 1000;
-    const endPort = 9000;
-    const batchSize = 100;
+    const endPort = 65000;
+    const batchSize = 500;
     
     for (let p = startPort; p <= endPort; p += batchSize) {
         const promises = [];
         for (let i = 0; i < batchSize && (p + i) <= endPort; i++) {
             const port = p + i;
+            if (commonPorts.includes(port)) continue;
             promises.push(checkPort(port).then(found => found ? port : null));
         }
         
         const results = await Promise.all(promises);
         const found = results.find(r => r !== null);
-        if (found) {
-            return found;
-        }
+        if (found) return found;
     }
     return null;
 }
@@ -445,3 +449,5 @@ function readFileAsText(file) {
         reader.readAsText(file);
     });
 }
+
+
