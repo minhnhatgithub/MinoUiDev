@@ -1047,7 +1047,7 @@ async function loadData() {
         // Load Image and Hierarchy concurrently for faster performance
                 const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
-        let imgUrl, fetchHier, fetchScreen;
+        let imgUrl, imgUrlFallback, fetchHier, fetchScreen;
         if (typeof currentPort !== 'undefined' && currentPort) {
             imgUrl = `http://127.0.0.1:${currentPort}/screenshot/0?t=${Date.now()}`;
             fetchHier = fetch(`http://127.0.0.1:${currentPort}/dump/hierarchy`, { signal: controller.signal });
@@ -1058,8 +1058,13 @@ async function loadData() {
             fetchScreen = fetch(`${BASE_URL}/api/android/${currentSerial}/screen`).catch(() => null);
         }
 
-        const [_, response, screenResponse] = await Promise.all([
-            loadImage(imgUrl),
+                const [_, response, screenResponse] = await Promise.all([
+            loadImage(imgUrl).catch(() => {
+                if (typeof imgUrlFallback !== 'undefined' && imgUrlFallback) {
+                    return loadImage(imgUrlFallback);
+                }
+                throw new Error("Cannot load image");
+            }),
             fetchHier,
             fetchScreen
         ]);
@@ -2254,6 +2259,8 @@ function extractDynamicList(targetNode) {
     
     dynamicListModal.style.display = 'flex';
 }
+
+
 
 
 
