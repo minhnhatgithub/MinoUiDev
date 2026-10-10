@@ -1148,8 +1148,15 @@ async function loadData() {
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) throw new Error('Lỗi lấy file JSON cấu trúc. Trạng thái: ' + response.status);
-        hierarchyData = await response.json();
+        if (!response.ok) throw new Error('Lỗi lấy file cấu trúc. Trạng thái: ' + response.status);
+        const textData = await response.text();
+        if (textData.trim().startsWith('<')) {
+            let parsed = parseXMLToJSON(textData);
+            hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+        } else {
+            let parsed = JSON.parse(textData);
+            hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+        }
 
         // Ensure natural dimensions exist on image to calculate scale
         calculateScale();
@@ -2428,6 +2435,7 @@ function setupTouchpad() {
         setupTouchpad();
     }
 */
+
 
 
 
