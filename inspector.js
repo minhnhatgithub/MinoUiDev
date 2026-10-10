@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:20242';
+﻿const BASE_URL = 'http://127.0.0.1:20242';
 
 // State
 let currentSerial = null;
@@ -1074,7 +1074,7 @@ function startLiveStream(port) {
             if (!isMinicapConnected) {
                 isMinicapConnected = true;
                 // If it's the first frame, recalculate scale
-                setTimeout(calculateScale, 100);
+                setTimeout(() => { calculateScale(); if (hierarchyData) renderBoundingBoxes(hierarchyData); }, 150);
             }
             const blob = new Blob([message.data], { type: 'image/jpeg' });
             const url = (window.URL || window.webkitURL).createObjectURL(blob);
@@ -1129,16 +1129,7 @@ async function loadData() {
             fetchScreen
         ];
 
-        if (!isMinicapConnected) {
-            promises.push(
-                loadImage(imgUrl).catch(() => {
-                    if (imgUrlFallback) {
-                        return loadImage(imgUrlFallback);
-                    }
-                    throw new Error("Cannot load image");
-                })
-            );
-        }
+        if (!minicapWs) { promises.push(loadImage(imgUrl).catch(() => { if (imgUrlFallback) { return loadImage(imgUrlFallback); } console.warn("Image load failed"); })); }
 
         const results = await Promise.all(promises);
         const response = results[0];
@@ -2438,3 +2429,5 @@ function setupTouchpad() {
         setupTouchpad();
     }
 */
+
+
