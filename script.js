@@ -296,8 +296,16 @@ async function connectToAtx(port) {
             devicesList.innerHTML = '';
         }
         
-        const tr = document.createElement('tr');
+        let tr = document.getElementById(`atx-row-${port}`);
+        let isNew = false;
+        if (!tr) {
+            tr = document.createElement('tr');
+            tr.id = `atx-row-${port}`;
+            isNew = true;
+        }
+        
         const rowsCount = devicesList.querySelectorAll('tr').length;
+        const rowIndex = isNew ? rowsCount + 1 : Array.from(devicesList.children).indexOf(tr) + 1;
         
         const serial = info.serial || ('ATX-' + port);
         const deviceName = info.brand ? (info.brand.toUpperCase() + ' ' + info.model) : 'ATX Device';
@@ -307,26 +315,29 @@ async function connectToAtx(port) {
 
         tr.innerHTML = `
             <td><input type="checkbox"></td>
-            <td>${rowsCount + 1}</td>
+            <td>${rowIndex}</td>
             <td style="color: #fff;"><i class="fa-brands fa-android" style="color: #00bf9a; margin-right: 8px;"></i>${serial}<br><small style="color: var(--text-muted)">127.0.0.1:${port}</small></td>
             <td>${deviceName}<br><small style="color: var(--text-muted)">${display} ${battery ? '| PIN: ' + battery : ''}</small></td>
             <td>${model}</td>
             <td><span style="color: #00bf9a;"><i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 5px;"></i>online</span></td>
             <td>
                 <div class="action-buttons" style="justify-content: flex-end;">
-                    <button class="btn-action btn-edit" onclick="window.open('inspector.html?port=${port}', '_blank')">VIEW XPATH</button>
+                    <button class="btn-action btn-edit" onclick="window.open('inspector?port=${port}', '_blank')">VIEW XPATH</button>
                 </div>
             </td>
         `;
-        devicesList.appendChild(tr);
         
-        const totalDevicesEl = document.getElementById('total-devices');
-        if (totalDevicesEl) {
-            totalDevicesEl.textContent = parseInt(totalDevicesEl.textContent || 0) + 1;
+        if (isNew) {
+            devicesList.appendChild(tr);
+            const totalDevicesEl = document.getElementById('total-devices');
+            if (totalDevicesEl) {
+                totalDevicesEl.textContent = parseInt(totalDevicesEl.textContent || 0) + 1;
+            }
         }
     } catch (err) {
-        alert('Không thể kết nối đến ATX Agent tại cổng ' + port);
+        showCustomAlert('Không thể kết nối đến ATX Agent tại cổng ' + port, false);
     }
+}
 }
 
 async function checkPort(port) {
@@ -449,5 +460,7 @@ function readFileAsText(file) {
         reader.readAsText(file);
     });
 }
+
+
 
 
