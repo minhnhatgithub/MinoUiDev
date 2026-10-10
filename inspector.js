@@ -3,7 +3,6 @@
 // State
 let currentSerial = null;
 let currentPort = null;
-let currentPort = null;
 let hierarchyData = null;
 let imageScaleX = 1;
 let imageScaleY = 1;
@@ -2429,5 +2428,6 @@ function setupTouchpad() {
         setupTouchpad();
     }
 */
+
 
 
