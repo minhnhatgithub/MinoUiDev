@@ -1,4 +1,4 @@
-﻿const BASE_URL = 'http://127.0.0.1:20242';
+const BASE_URL = 'http://127.0.0.1:20242';
 
 // State
 let currentSerial = null;
@@ -1034,6 +1034,37 @@ function prepareHierarchyData(data) {
     renderBoundingBoxes(data);
 }
 
+let isMinicapConnected = false;
+let minicapWs = null;
+
+function startLiveStream(port) {
+    if (minicapWs) return;
+    minicapWs = new WebSocket(`ws://127.0.0.1:${port}/minicap`);
+    minicapWs.onmessage = (message) => {
+        if (message.data instanceof Blob) {
+            if (!isMinicapConnected) {
+                isMinicapConnected = true;
+                // If it's the first frame, recalculate scale
+                setTimeout(calculateScale, 100);
+            }
+            const blob = new Blob([message.data], { type: 'image/jpeg' });
+            const url = (window.URL || window.webkitURL).createObjectURL(blob);
+            if (elImage.src && elImage.src.startsWith('blob:')) {
+                (window.URL || window.webkitURL).revokeObjectURL(elImage.src);
+            }
+            elImage.src = url;
+        }
+    };
+    minicapWs.onclose = () => {
+        console.warn("Minicap websocket closed");
+        isMinicapConnected = false;
+        minicapWs = null;
+    };
+    minicapWs.onerror = (e) => {
+        console.error("Minicap websocket error", e);
+    };
+}
+
 async function loadData() {
     elLoading.style.display = 'flex';
     elOverlay.innerHTML = '';
@@ -1044,12 +1075,16 @@ async function loadData() {
         // Reset loading text
         elLoading.innerHTML = '<div class="loader-pulse"></div><div class="loading-text">Đang lấy cấu trúc giao diện...</div>';
         
-        // Load Image and Hierarchy concurrently for faster performance
-                const controller = new AbortController();
+        const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
         let imgUrl, imgUrlFallback, fetchHier, fetchScreen;
+        
         if (typeof currentPort !== 'undefined' && currentPort) {
+            if (!isMinicapConnected && !minicapWs) {
+                startLiveStream(currentPort);
+            }
             imgUrl = `http://127.0.0.1:${currentPort}/screenshot/0?t=${Date.now()}`;
+            imgUrlFallback = `http://127.0.0.1:${currentPort}/screenshot?t=${Date.now()}`;
             fetchHier = fetch(`http://127.0.0.1:${currentPort}/dump/hierarchy`, { signal: controller.signal });
             fetchScreen = fetch(`http://127.0.0.1:${currentPort}/info`).catch(() => null);
         } else {
@@ -1058,16 +1093,25 @@ async function loadData() {
             fetchScreen = fetch(`${BASE_URL}/api/android/${currentSerial}/screen`).catch(() => null);
         }
 
-                const [_, response, screenResponse] = await Promise.all([
-            loadImage(imgUrl).catch(() => {
-                if (typeof imgUrlFallback !== 'undefined' && imgUrlFallback) {
-                    return loadImage(imgUrlFallback);
-                }
-                throw new Error("Cannot load image");
-            }),
+        const promises = [
             fetchHier,
             fetchScreen
-        ]);
+        ];
+
+        if (!isMinicapConnected) {
+            promises.push(
+                loadImage(imgUrl).catch(() => {
+                    if (imgUrlFallback) {
+                        return loadImage(imgUrlFallback);
+                    }
+                    throw new Error("Cannot load image");
+                })
+            );
+        }
+
+        const results = await Promise.all(promises);
+        const response = results[0];
+        const screenResponse = results[1];
         
         if (screenResponse && screenResponse.ok) {
             const screenStatus = await screenResponse.json();
