@@ -393,6 +393,44 @@ async function scanAtxPorts() {
 
 
 
+function openOfflineDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('MinouiOfflineDB', 1);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('data')) {
+                db.createObjectStore('data');
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function setOfflineItem(key, value) {
+    try {
+        const db = await openOfflineDB();
+        await new Promise((resolve, reject) => {
+            const tx = db.transaction('data', 'readwrite');
+            const store = tx.objectStore('data');
+            const req = store.put(value, key);
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => reject(req.error);
+        });
+    } catch (e) {
+        console.warn('IndexedDB write failed, falling back to sessionStorage:', e);
+    }
+    try {
+        if (value) {
+            sessionStorage.setItem(key, value);
+        } else {
+            sessionStorage.removeItem(key);
+        }
+    } catch (err) {
+        // Exceeded quota in sessionStorage is safely ignored since IndexedDB holds it
+    }
+}
+
 // --- OFFLINE INSPECTOR LOGIC ---
 document.addEventListener('DOMContentLoaded', () => {
     const btnOffline = document.getElementById('btn-offline-inspector');
@@ -403,14 +441,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputOfflineXml = document.getElementById('offline-xml');
 
     if (btnOffline && offlineModal) {
-        btnOffline.addEventListener('click', () => {
-            offlineModal.style.display = 'flex';
-        });
-        closeOffline.addEventListener('click', () => {
-            offlineModal.style.display = 'none';
-        });
+        const showOfflineModal = () => {
+            offlineModal.style.display = 'block';
+            setTimeout(() => offlineModal.classList.add('show'), 10);
+        };
+        const hideOfflineModal = () => {
+            offlineModal.classList.remove('show');
+            setTimeout(() => {
+                offlineModal.style.display = 'none';
+            }, 300);
+        };
+
+        btnOffline.addEventListener('click', showOfflineModal);
+        if (closeOffline) closeOffline.addEventListener('click', hideOfflineModal);
         window.addEventListener('click', (e) => {
-            if (e.target === offlineModal) offlineModal.style.display = 'none';
+            if (e.target === offlineModal) hideOfflineModal();
         });
         
         btnStartOffline.addEventListener('click', async () => {
@@ -418,33 +463,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const xmlFile = inputOfflineXml.files[0];
             
             if (!imgFile && !xmlFile) {
-                showCustomAlert('Vui lòng chọn ít nhất ảnh hoặc file XML', false);
+                showCustomAlert('Vui lòng chọn ít nhất ảnh hoặc file cấu trúc (XML/TXT/JSON)', false);
                 return;
             }
             
             btnStartOffline.textContent = 'Đang xử lý...';
+            btnStartOffline.disabled = true;
             
             try {
                 if (imgFile) {
                     const imgDataUrl = await readFileAsDataURL(imgFile);
-                    sessionStorage.setItem('offline_image', imgDataUrl);
+                    await setOfflineItem('offline_image', imgDataUrl);
                 } else {
-                    sessionStorage.removeItem('offline_image');
+                    await setOfflineItem('offline_image', null);
                 }
                 
                 if (xmlFile) {
                     const xmlText = await readFileAsText(xmlFile);
-                    sessionStorage.setItem('offline_xml', xmlText);
+                    await setOfflineItem('offline_xml', xmlText);
                 } else {
-                    sessionStorage.removeItem('offline_xml');
+                    await setOfflineItem('offline_xml', null);
                 }
                 
-                window.open('inspector?offline=true', '_blank');
-                offlineModal.style.display = 'none';
+                window.open('inspector.html?offline=true', '_blank');
+                hideOfflineModal();
             } catch (err) {
-                showCustomAlert('Lỗi đọc file: ' + err.message, false);
+                showCustomAlert('Lỗi xử lý file: ' + err.message, false);
             } finally {
                 btnStartOffline.textContent = 'Mở Inspector';
+                btnStartOffline.disabled = false;
             }
         });
     }

@@ -1,4 +1,4 @@
-﻿const BASE_URL = 'http://127.0.0.1:20242';
+const BASE_URL = 'http://127.0.0.1:20242';
 
 // State
 let currentSerial = null;
@@ -25,14 +25,43 @@ const elNoNode = document.getElementById('no-node-selected');
 const elXpathCont = document.getElementById('xpath-container');
 const elXpathValue = document.getElementById('xpath-value');
 
+function openOfflineDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('MinouiOfflineDB', 1);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('data')) {
+                db.createObjectStore('data');
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function getOfflineItem(key) {
+    try {
+        const db = await openOfflineDB();
+        return new Promise((resolve) => {
+            const tx = db.transaction('data', 'readonly');
+            const store = tx.objectStore('data');
+            const req = store.get(key);
+            req.onsuccess = () => resolve(req.result || sessionStorage.getItem(key));
+            req.onerror = () => resolve(sessionStorage.getItem(key));
+        });
+    } catch (e) {
+        return sessionStorage.getItem(key);
+    }
+}
+
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentSerial = urlParams.get('serial');
     currentPort = urlParams.get('port');
-    currentPort = urlParams.get('port');
+    window.isOffline = urlParams.get('offline') === 'true' || urlParams.has('offline');
 
-    if (!currentSerial && !currentPort) {
+    if (!currentSerial && !currentPort && !window.isOffline) {
         showToast('Không có s? serial c?a thi?t b?!');
         return;
     }
@@ -1111,30 +1140,47 @@ async function loadData() {
         
         if (window.isOffline) {
             clearTimeout(timeoutId);
-            const offlineImg = sessionStorage.getItem('offline_image');
-            const offlineXml = sessionStorage.getItem('offline_xml');
+            const offlineImg = await getOfflineItem('offline_image');
+            const offlineXml = await getOfflineItem('offline_xml');
             
             if (offlineImg) {
-                await loadImage(offlineImg);
+                try {
+                    await loadImage(offlineImg);
+                } catch (e) {
+                    console.error('Lỗi tải ảnh offline:', e);
+                }
             }
             if (offlineXml) {
                 const textData = offlineXml;
+                let parsed = null;
                 if (textData.trim().startsWith('<')) {
-                    let parsed = parseXMLToJSON(textData);
-                    hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+                    parsed = parseXMLToJSON(textData);
                 } else {
-                    let parsed = JSON.parse(textData);
-                    if (parsed.jsonrpc && typeof parsed.result === 'string' && parsed.result.trim().startsWith('<')) {
-                        let xmlParsed = parseXMLToJSON(parsed.result);
-                        hierarchyData = xmlParsed.hierarchy ? xmlParsed.hierarchy : xmlParsed;
-                    } else {
-                        hierarchyData = parsed.hierarchy ? parsed.hierarchy : parsed;
+                    try {
+                        parsed = JSON.parse(textData);
+                        if (parsed.jsonrpc && typeof parsed.result === 'string' && parsed.result.trim().startsWith('<')) {
+                            parsed = parseXMLToJSON(parsed.result);
+                        }
+                    } catch (e) {
+                        parsed = parseXMLToJSON(textData);
                     }
                 }
-                
+                hierarchyData = (parsed && parsed.hierarchy) ? parsed.hierarchy : parsed;
                 calculateScale();
                 prepareHierarchyData(hierarchyData);
             }
+
+            const statusEl = document.getElementById('device-status-text');
+            if (statusEl) {
+                statusEl.textContent = 'Ngoại tuyến';
+                statusEl.className = 'device-status-text off';
+            }
+
+            if (!offlineImg && !offlineXml) {
+                const uploadModal = document.getElementById('upload-modal');
+                if (uploadModal) uploadModal.style.display = 'flex';
+            }
+
             elLoading.style.display = 'none';
             return;
         }
@@ -1216,13 +1262,12 @@ async function loadData() {
 
 function loadImage(src) {
     return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-            elImage.src = src;
+        elImage.onload = () => resolve();
+        elImage.onerror = () => reject(new Error('Failed to load image from ' + src));
+        elImage.src = src;
+        if (elImage.complete && elImage.naturalWidth > 0) {
             resolve();
-        };
-        img.onerror = () => reject(new Error('Failed to load image from ' + src));
-        img.src = src;
+        }
     });
 }
 
