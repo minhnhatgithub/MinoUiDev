@@ -485,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await setOfflineItem('offline_xml', null);
                 }
                 
-                window.open('inspector.html?offline=true', '_blank');
+                window.open('inspector?offline=true', '_blank');
                 hideOfflineModal();
             } catch (err) {
                 showCustomAlert('Lỗi xử lý file: ' + err.message, false);
