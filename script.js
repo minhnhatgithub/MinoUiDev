@@ -1,4 +1,4 @@
-﻿function showCustomAlert(msg, isSuccess = true) {
+function showCustomAlert(msg, isSuccess = true) {
     const toast = document.createElement('div');
     toast.textContent = msg;
     toast.style.position = 'fixed';
@@ -310,14 +310,21 @@ async function connectToAtx(port) {
         const serial = info.serial || ('ATX-' + port);
         const deviceName = info.brand ? (info.brand.toUpperCase() + ' ' + info.model) : 'ATX Device';
         const model = info.model || 'Unknown';
-        const display = info.display ? `x${info.display.height}` : '';
-        const battery = info.battery ? `%` : '';
+        let display = '';
+        if (info.display) {
+            display = (info.display.width && info.display.height) ? `${info.display.width}x${info.display.height}` : (info.display.height ? `x${info.display.height}` : '');
+        }
+        let battery = '';
+        if (info.battery) {
+            const bVal = (typeof info.battery === 'object') ? (info.battery.level ?? '') : info.battery;
+            if (bVal !== '') battery = `| PIN: ${bVal}%`;
+        }
 
         tr.innerHTML = `
             <td><input type="checkbox"></td>
             <td>${rowIndex}</td>
             <td style="color: #fff;"><i class="fa-brands fa-android" style="color: #00bf9a; margin-right: 8px;"></i>${serial}<br><small style="color: var(--text-muted)">127.0.0.1:${port}</small></td>
-            <td>${deviceName}<br><small style="color: var(--text-muted)">${display} ${battery ? '| PIN: ' + battery : ''}</small></td>
+            <td>${deviceName}<br><small style="color: var(--text-muted)">${display} ${battery}</small></td>
             <td>${model}</td>
             <td><span style="color: #00bf9a;"><i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 5px;"></i>online</span></td>
             <td>
@@ -337,7 +344,6 @@ async function connectToAtx(port) {
     } catch (err) {
         showCustomAlert('Không thể kết nối đến ATX Agent tại cổng ' + port, false);
     }
-}
 }
 
 async function checkPort(port) {
